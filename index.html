@@ -1,70 +1,1068 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>読書記録</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="読書記録">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root { --black: #0A0A0A; --muted: #8C8C8C; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: var(--black); color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
-  main { max-width: 440px; margin: 0 auto; min-height: 100vh; min-height: 100dvh;
-    padding: 56px 24px calc(32px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 28px; }
-  .label { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--muted); }
-  .icon { width: 96px; height: 96px; border-radius: 22px; display: block; }
-  h1 { margin: 0; font-size: 40px; font-weight: 900; letter-spacing: -.03em; }
-  ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 3px solid #fff; }
-  li { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #2A2A2A; font-size: 15px; line-height: 1.6; }
-  li b.n { flex: none; width: 22px; font-size: 15px; font-weight: 900; }
-  li em { font-style: normal; font-weight: 700; }
-  .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
-  .btn { height: 54px; border-radius: 999px; border: 1.5px solid #fff; background: transparent; color: #fff;
-    font: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-  .btn.white { background: #fff; color: var(--black); }
-  .hidden { display: none !important; }
+:root{
+  --black:#0A0A0A; --white:#FFFFFF; --ink:#0A0A0A; --muted:#6B6B6B; --faint:#A3A3A3;
+  --line:#EBEBEB; --tile:#F0F0F0; --dark2:#1F1F1F; --dark3:#2A2A2A; --red:#E5383B;
+  --nav-h:66px; --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:#0A0A0A}
+html,body{margin:0;background:#0A0A0A;color:var(--ink);font-family:'Inter','Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+#app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--white);position:relative}
+.hidden{display:none!important}
+.label{font-size:12px;font-weight:700;letter-spacing:.2em}
+.sec-label{font-size:11px;font-weight:800;letter-spacing:.2em}
+.icon-btn{width:44px;height:44px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;padding:0}
+.pill{height:36px;padding:0 14px;border-radius:999px;border:1.5px solid var(--black);background:var(--white);font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.pill.on{background:var(--black);color:var(--white)}
+.btn{height:48px;border-radius:999px;border:1.5px solid var(--black);background:var(--white);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px}
+.btn.black{background:var(--black);color:var(--white)}
+.btn.red{background:var(--red);border-color:var(--red);color:var(--white)}
+.badge{min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0}
+
+/* ----- 黒いヘッダー ----- */
+.dark-head{background:var(--black);color:var(--white);padding:calc(14px + var(--safe-t)) 20px 20px;display:flex;flex-direction:column;gap:14px}
+.dark-head .row{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.big-num{display:flex;align-items:flex-end;gap:10px}
+.big-num b{font-size:104px;font-weight:900;line-height:.82;letter-spacing:-.06em}
+.big-num span{font-size:18px;font-weight:700;padding-bottom:4px}
+.search{display:flex;align-items:center;gap:10px;height:46px;padding:0 16px;background:var(--dark2);border-radius:999px}
+.search input{flex:1;border:0;outline:0;background:transparent;color:#fff;font-size:15px;min-width:0}
+.search input::placeholder{color:#8C8C8C}
+
+/* ----- 本棚 ----- */
+.filters{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 20px 0}
+.filters .left{display:flex;gap:8px;min-width:0}
+.sel-pill{position:relative;display:inline-flex;color:var(--ink)}
+.sel-pill.on{color:#fff}
+.sel-pill select{appearance:none;-webkit-appearance:none;height:36px;padding:0 30px 0 14px;border-radius:999px;border:1.5px solid var(--black);background:var(--white);font-size:13px;font-weight:700;max-width:150px}
+.sel-pill.on select{background:var(--black);color:#fff}
+.sel-pill::after{content:'';position:absolute;right:13px;top:14px;width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);pointer-events:none}
+.toggle{display:flex;border:1.5px solid var(--black);border-radius:999px;overflow:hidden;flex:none}
+.toggle button{width:42px;height:33px;border:0;background:var(--white);display:flex;align-items:center;justify-content:center;padding:0}
+.toggle button.on{background:var(--black);color:#fff}
+.shelf-body{padding:16px 20px calc(var(--nav-h) + var(--safe-b) + 24px)}
+.group-head{display:flex;align-items:center;justify-content:space-between;border-top:3px solid var(--black);padding-top:6px;margin:0 0 12px}
+.group-head h2{margin:0;font-size:22px;font-weight:900;letter-spacing:-.03em}
+.group-head .cnt{font-size:13px;font-weight:700}
+.sort-btn{height:32px;border:0;background:transparent;font-size:11px;font-weight:800;letter-spacing:.14em;display:flex;align-items:center;gap:6px;padding:0;margin-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:28px}
+.tile{aspect-ratio:1/1;background:var(--tile);border:0;padding:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tile img{max-height:100%;max-width:100%;object-fit:contain;box-shadow:0 3px 8px rgba(0,0,0,.22);display:block}
+.ph{height:100%;aspect-ratio:2/3;background:#2B2B2B;color:#F2F2F2;padding:6px 5px;font-size:10px;font-weight:700;line-height:1.3;text-align:left;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,.22);word-break:break-all}
+.list{margin-bottom:28px}
+.row-item{display:flex;align-items:center;gap:14px;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:transparent;width:100%;text-align:left}
+.thumb{width:36px;height:54px;flex:none;background:var(--tile);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .ph{font-size:6px;padding:3px;height:100%;width:100%;aspect-ratio:auto;box-shadow:none}
+.row-item .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.row-item .t b{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-item .t span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-item .d{font-size:12px;font-weight:800;letter-spacing:.06em;flex:none}
+.empty{padding:40px 0;text-align:center;color:var(--muted);font-size:14px}
+
+/* ----- 下のメニュー ----- */
+nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);background:var(--black);display:grid;grid-template-columns:repeat(3,1fr);z-index:20}
+nav.tabs.on-dark{border-top:1px solid #222}
+nav.tabs button{border:0;border-top:2px solid transparent;background:transparent;color:#7A7A7A;font-size:10px;font-weight:800;letter-spacing:.16em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+nav.tabs button.on{color:#fff;border-top-color:#fff}
+nav.tabs .ic{position:relative;display:inline-flex}
+nav.tabs .badge{position:absolute;top:-5px;right:-10px}
+
+/* ----- 集計 ----- */
+.stats{background:var(--black);color:#fff;min-height:100vh;min-height:100dvh;padding-top:var(--safe-t);padding-bottom:calc(var(--nav-h) + var(--safe-b) + 24px)}
+.stats-top{padding:14px 20px 0;display:flex;align-items:center;justify-content:space-between;min-height:58px}
+.seg{display:flex;background:var(--dark2);border-radius:999px;padding:3px}
+.seg button{height:34px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--faint);font-size:13px;font-weight:700}
+.seg button.on{background:#fff;color:var(--black)}
+.period{display:flex;align-items:center;gap:6px;padding:18px 20px 0}
+.period button{width:36px;height:36px;border:0;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;padding:0}
+.period button:disabled{color:#444}
+.period span{font-size:14px;font-weight:700;letter-spacing:.1em}
+.stats .big-num{padding:2px 20px 0}
+.stats .big-num b{font-size:112px}
+.bars{margin:16px 20px 0;display:flex;align-items:flex-end;gap:3px;height:116px}
+.bars button{flex:1;min-width:0;height:100%;padding:0;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px}
+.bars .v{font-size:12px;font-weight:900;color:#fff;height:14px}
+.bars .b{width:100%;background:#4A4A4A;min-height:2px;display:block}
+.bars button.sel .b{background:#fff}
+.bars .l{font-size:9px;font-weight:700;color:#8C8C8C;white-space:nowrap}
+.bars button.sel .l{color:#fff}
+.stat-sec{margin:24px 20px 0;display:flex;flex-direction:column}
+.stat-sec h3{margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.2em;color:#8C8C8C}
+.stat-sec h3 em{font-style:normal;color:#fff}
+.g-row{display:grid;grid-template-columns:78px 1fr 40px;align-items:center;gap:10px;min-height:30px;border:0;background:transparent;color:#fff;padding:0;text-align:left;width:100%}
+.g-row .n{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-row .track{height:6px;background:#222;display:block}
+.g-row .fill{height:100%;background:#fff;display:block}
+.g-row .c{font-size:13px;font-weight:700;text-align:right}
+.a-row{display:flex;align-items:center;gap:12px;height:40px;border:0;border-bottom:1px solid #222;background:transparent;color:#fff;padding:0;text-align:left;width:100%}
+.a-row .r{width:18px;font-size:13px;font-weight:900}
+.a-row .n{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.a-row .c{font-size:13px;font-weight:700}
+
+/* ----- 要チェック ----- */
+.check-body{padding:20px 20px calc(var(--nav-h) + var(--safe-b) + 24px);display:flex;flex-direction:column;gap:26px}
+.card{border-top:3px solid var(--black);padding-top:12px;display:flex;flex-direction:column;gap:14px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card .date{font-size:12px;font-weight:800;letter-spacing:.14em}
+.tag{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;border:1.5px solid var(--black)}
+.tag.fill{background:var(--black);color:#fff}
+.card .mid{display:flex;gap:14px}
+.card .cv{width:56px;height:84px;flex:none;background:var(--tile);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card .cv img{width:100%;height:100%;object-fit:cover}
+.card dl{margin:0;flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.card dt{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--muted)}
+.card dd{margin:2px 0 0;font-size:14px;word-break:break-word}
+.card dd.main{font-size:16px;font-weight:800}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+
+/* ----- 詳細シート ----- */
+.sheet-wrap{position:fixed;inset:0;z-index:40;display:flex;justify-content:center;align-items:flex-end}
+.sheet-bg{position:absolute;inset:0;background:rgba(10,10,10,.55);border:0;padding:0}
+.sheet{position:relative;width:100%;max-width:480px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:10px 24px calc(28px + var(--safe-b));display:flex;flex-direction:column;gap:20px;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.grab{display:flex;justify-content:center;position:relative;min-height:24px}
+.grab span{width:40px;height:4px;border-radius:2px;background:#D4D4D4;margin-top:4px}
+.grab .icon-btn{position:absolute;right:-12px;top:-6px}
+.big-cover{display:flex;justify-content:center;padding-top:6px}
+.big-cover img{max-width:200px;max-height:300px;box-shadow:0 18px 40px rgba(0,0,0,.28)}
+.big-cover .ph{width:196px;height:294px;font-size:22px;padding:18px 16px}
+.info{display:flex;flex-direction:column;gap:6px}
+.info .meta{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.info .meta .d{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.info h1{margin:4px 0 0;font-size:30px;font-weight:900;line-height:1.2;letter-spacing:-.03em;word-break:break-word}
+.info .au{font-size:15px;color:#555}
+
+/* ----- 全画面のページ(編集・設定など) ----- */
+.page{position:fixed;inset:0;z-index:50;display:flex;justify-content:center;background:rgba(0,0,0,.2)}
+.page-in{width:100%;max-width:480px;height:100%;overflow-y:auto;background:#fff;-webkit-overflow-scrolling:touch}
+.page-bar{position:sticky;top:0;z-index:2;background:#fff;height:calc(60px + var(--safe-t));padding-top:var(--safe-t)!important;box-shadow:inset 0 var(--safe-t) 0 #0A0A0A;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 8px}
+.page-title{padding:0 20px 18px}
+.page-title h1{margin:0;font-size:40px;font-weight:900;letter-spacing:-.03em}
+.page-body{padding:0 20px calc(40px + var(--safe-b));display:flex;flex-direction:column;gap:28px}
+.sec{display:flex;flex-direction:column}
+.sec-head{display:flex;align-items:center;justify-content:space-between;border-top:3px solid var(--black);padding:8px 0 4px;min-height:40px}
+.link-row{min-height:56px;display:flex;align-items:center;gap:12px;border:0;border-bottom:1px solid var(--line);background:transparent;padding:0;width:100%;text-align:left;font-size:15px;font-weight:700}
+.link-row .grow{flex:1;min-width:0}
+.link-row small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:2px}
+.save-btn{height:36px;padding:0 18px;border-radius:999px;border:0;background:var(--black);color:#fff;font-size:12px;font-weight:800;letter-spacing:.14em}
+.text-btn{height:32px;border:0;background:transparent;font-size:11px;font-weight:800;letter-spacing:.14em;text-decoration:underline;padding:0}
+.u-input{height:44px;border:0;border-bottom:1.5px solid var(--black);padding:0;font-size:16px;font-weight:700;background:transparent;outline:none;width:100%;min-width:0;border-radius:0}
+.u-input::placeholder{color:var(--faint);font-weight:400}
+.cand{display:flex;align-items:center;gap:12px;padding:8px 0;border:0;border-bottom:1px solid var(--line);background:transparent;width:100%;text-align:left}
+.cand .thumb{width:36px;height:54px}
+.cand .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cand .t b{font-size:14px;font-weight:800}
+.cand .t span{font-size:12px;color:var(--muted)}
+.radio{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--black);box-shadow:inset 0 0 0 3px #fff}
+.radio.on{background:var(--black)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.cover-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.cover-grid button{aspect-ratio:2/3;border:0;padding:0;background:var(--tile);overflow:hidden;outline-offset:2px}
+.cover-grid button.on{outline:3px solid var(--black)}
+.cover-grid img{width:100%;height:100%;object-fit:cover}
+.switch{width:52px;height:30px;flex:none;border-radius:999px;border:1.5px solid var(--black);background:#fff;position:relative;padding:0}
+.switch i{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:var(--black);transition:left .15s}
+.switch.on{background:var(--black)}
+.switch.on i{left:25px;background:#fff}
+.lock{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.g-item{border-bottom:1px solid var(--line)}
+.g-item > button{display:flex;align-items:center;gap:10px;min-height:56px;width:100%;border:0;background:transparent;padding:0;text-align:left}
+.g-item .n{flex:1;font-size:16px;font-weight:800}
+.g-item .c{font-size:14px;font-weight:800}
+.g-panel{padding:0 0 18px;display:flex;flex-direction:column;gap:16px}
+.mini-label{font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--muted)}
+.round-sel{flex:1;height:42px;border:1.5px solid var(--black);border-radius:999px;background:#fff;font-size:14px;padding:0 14px;min-width:0}
+.map-row{display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:1px solid var(--line)}
+.map-row .cat{flex:1;min-width:0;font-size:14px;font-weight:700;word-break:break-word}
+.map-row .cat small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.map-row select{width:132px;height:40px;border:1.5px solid var(--black);border-radius:999px;background:#fff;font-size:13px;font-weight:700;padding:0 12px;flex:none}
+.map-row select.need{background:var(--black);color:#fff}
+.log-row{padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.log-row .top{display:flex;gap:10px;font-size:11px;color:var(--muted)}
+.log-row .top b{color:var(--ink);font-weight:800;letter-spacing:.06em}
+.log-row .tt{font-size:14px;font-weight:700;word-break:break-word}
+.log-row .dd{font-size:12px;color:var(--muted);word-break:break-word}
+
+/* ----- 読み込み中・お知らせ ----- */
+.busy{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55)}
+.spin{width:36px;height:36px;border-radius:50%;border:3px solid #D4D4D4;border-top-color:var(--black);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + var(--safe-b) + 16px);transform:translateX(-50%);z-index:95;max-width:min(440px,calc(100% - 32px));background:var(--black);color:#fff;font-size:13px;font-weight:700;padding:12px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.3);text-align:center}
+.toast.err{background:var(--red)}
+.boot{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--black);color:#fff}
+.boot .label{color:#8C8C8C}
+.login{align-items:stretch;justify-content:center;padding:24px 28px calc(24px + var(--safe-b));gap:18px}
+.login h1{margin:0 0 6px;font-size:40px;font-weight:900;letter-spacing:-.03em}
+.login form{display:flex;flex-direction:column;gap:12px}
+.login input{height:52px;border:0;border-radius:999px;background:var(--dark2);color:#fff;padding:0 20px;font-size:16px;outline:none}
+.login input::placeholder{color:#8C8C8C}
+.login .btn{height:52px;border-color:#fff}
+.login .btn.white{background:#fff;color:var(--black)}
+.login .err{margin:0;color:#FF8A8C;font-size:13px;font-weight:700}
 </style>
 </head>
 <body>
-<main id="setup" class="hidden">
-  <span class="label">LIBRARY</span>
-  <img class="icon" src="apple-touch-icon.png" alt="">
-  <h1>読書記録</h1>
-  <ol>
-    <li><b class="n">1</b><span>下の<em>共有ボタン</em>を押して、<em>「ホーム画面に追加」</em>を選ぶ</span></li>
-    <li><b class="n">2</b><span><em>「Webアプリとして開く」</em>がオンになっていたら<em>オフ</em>にして、「追加」を押す</span></li>
-    <li><b class="n">3</b><span>追加できたら、下の<em>「追加しました」</em>を押す。次からはアイコンを押すとすぐにアプリが開きます</span></li>
-  </ol>
-  <div class="actions">
-    <button class="btn white" id="done" type="button">追加しました</button>
-    <a class="btn" id="open" href="#">今はこのまま開く</a>
-  </div>
-</main>
+<div id="app"><div class="boot"><div class="spin" style="border-color:#333;border-top-color:#fff"></div><span class="label">LIBRARY</span></div></div>
+<div id="layer"></div>
+<div id="busy" class="busy hidden"><div class="spin"></div></div>
+<div id="toast" class="toast hidden"></div>
 
 <script>
-  // 移動先(GASのWebアプリのURL)
-  var APP_URL = 'https://script.google.com/macros/s/AKfycbzTid_soGKLnee5kqwEKl_2SBKEZ3itSCMy7VsX4sc0iztYxpv5jKLcrooctq74u2ft/exec';
+/* =========================================================
+   状態
+   ========================================================= */
+var S = {
+  books: [], genres: [], mappings: [], settings: {},
+  tab: 'shelf',
+  view: pref('view', 'grid'),
+  year: pref('year', 'latest'),
+  genre: '',
+  q: '',
+  sort: 'date-desc',
+  statsMode: 'year', statsYear: null, statsSel: -1,
+};
+var EDIT = null;   // 編集中の状態
+var NOW_YEAR = new Date().getFullYear();
 
-  function ready() {
-    try { return localStorage.getItem('reading_log_ready') === '1'; } catch (e) { return false; }
+function pref(k, d) { try { return localStorage.getItem('rl_' + k) || d; } catch (e) { return d; } }
+function savePref(k, v) { try { localStorage.setItem('rl_' + k, v); } catch (e) {} }
+
+/* =========================================================
+   サーバー呼び出し
+   ========================================================= */
+// GASのWebアプリのURL(データのやり取り先)
+var API_URL = 'https://script.google.com/macros/s/AKfycbzTid_soGKLnee5kqwEKl_2SBKEZ3itSCMy7VsX4sc0iztYxpv5jKLcrooctq74u2ft/exec';
+
+function getToken() { try { return localStorage.getItem('rl_token') || ''; } catch (e) { return ''; } }
+function setToken(t) { try { if (t) localStorage.setItem('rl_token', t); else localStorage.removeItem('rl_token'); } catch (e) {} }
+
+function call(fn) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ token: getToken(), fn: fn, args: args }),
+  }).then(function (r) {
+    if (!r.ok) throw new Error('通信エラー(' + r.status + ')');
+    return r.json();
+  }).then(function (res) {
+    if (!res.ok) {
+      var err = new Error(res.error || 'エラーが起きました');
+      err.code = res.code;
+      if (res.code === 'auth') { setToken(''); showLogin(res.error); }
+      throw err;
+    }
+    return res.result;
+  });
+}
+function busy(on) { document.getElementById('busy').classList.toggle('hidden', !on); }
+function withBusy(p) {
+  busy(true);
+  return p.then(function (v) { busy(false); return v; }, function (e) { busy(false); toast(errMsg(e), true); throw e; });
+}
+function errMsg(e) {
+  if (e instanceof TypeError) return '通信できませんでした。電波の状態を確認してください。';
+  return (e && e.message ? e.message : String(e)).replace(/^Exception: /, '');
+}
+var toastTimer;
+function toast(msg, isErr) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.className = 'toast hidden'; }, isErr ? 4500 : 2200);
+}
+function applySnapshot(s) {
+  S.books = s.books || [];
+  S.genres = s.genres || [];
+  S.mappings = s.mappings || [];
+  S.settings = s.settings || {};
+  saveCache();
+}
+// 前回のデータを保存しておき、次に開いたときにすぐ表示する
+function saveCache() {
+  try { localStorage.setItem('rl_cache', JSON.stringify({ books: S.books, genres: S.genres, mappings: S.mappings, settings: S.settings })); } catch (e) {}
+}
+function loadCache() { try { var c = localStorage.getItem('rl_cache'); return c ? JSON.parse(c) : null; } catch (e) { return null; } }
+
+/* =========================================================
+   小物
+   ========================================================= */
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function norm(s) { return String(s || '').normalize('NFKC').toLowerCase().replace(/\s+/g, ''); }
+function yearOf(b) { return Number(String(b.date).slice(0, 4)) || 0; }
+function monthOf(b) { return Number(String(b.date).slice(5, 7)) || 0; }
+function dotDate(d) { return String(d).replace(/-/g, '.'); }
+function bookById(id) { for (var i = 0; i < S.books.length; i++) if (S.books[i].id === id) return S.books[i]; return null; }
+function years() {
+  var set = {};
+  S.books.forEach(function (b) { var y = yearOf(b); if (y) set[y] = 1; });
+  return Object.keys(set).map(Number).sort(function (a, b) { return b - a; });
+}
+function checkBooks() { return S.books.filter(function (b) { return b.status === '要チェック'; }); }
+function authorsOf(b) { return String(b.author || '').split(/[、,]/).map(function (s) { return s.trim(); }).filter(Boolean); }
+
+function coverHtml(b, cls) {
+  if (b.cover) {
+    return '<img src="' + esc(b.cover) + '" alt="" loading="lazy" referrerpolicy="no-referrer" data-ph="' + esc(b.title) + '">';
   }
-  function go() { location.replace(APP_URL); }
+  return '<div class="ph' + (cls ? ' ' + cls : '') + '">' + esc(b.title) + '</div>';
+}
+// 表紙が読み込めなかったら、タイトル入りの仮表紙にする
+document.addEventListener('error', function (e) {
+  var img = e.target;
+  if (img.tagName !== 'IMG' || !img.hasAttribute('data-ph')) return;
+  var d = document.createElement('div');
+  d.className = 'ph';
+  d.textContent = img.getAttribute('data-ph');
+  img.replaceWith(d);
+}, true);
 
-  // 設定済み、またはホーム画面から全画面モードで開かれたときは、すぐにアプリへ移動する
-  if (ready() || window.navigator.standalone) {
-    go();
-  } else {
-    document.getElementById('setup').classList.remove('hidden');
-    document.getElementById('open').href = APP_URL;
-    document.getElementById('done').addEventListener('click', function () {
-      try { localStorage.setItem('reading_log_ready', '1'); } catch (e) {}
-      go();
+function amazonUrl(b) {
+  var isbn = String(b.isbn || '').replace(/[^\dXx]/g, '');
+  if (isbn.length === 13 && isbn.indexOf('978') === 0) isbn = isbn13to10(isbn);
+  if (isbn.length === 10) return 'https://www.amazon.co.jp/dp/' + isbn.toUpperCase();
+  return 'https://www.amazon.co.jp/s?k=' + encodeURIComponent(isbn || b.title) + '&i=stripbooks';
+}
+function isbn13to10(s) {
+  var core = s.slice(3, 12), sum = 0;
+  for (var i = 0; i < 9; i++) sum += (10 - i) * Number(core[i]);
+  var c = (11 - (sum % 11)) % 11;
+  return core + (c === 10 ? 'X' : String(c));
+}
+
+var IC = {
+  sliders: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
+  search: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A3A3A3" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  grid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>',
+  list: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+  shelf: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 5l3.5-1 2.5 15.5-3.5 1z"/></svg>',
+  stats: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>',
+  check: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>',
+  back: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  close: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  pen: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  ext: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+  chev: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  down: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  up: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
+  plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  lock: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  arrow: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A3A3A3" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  sync: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></svg>',
+  sort: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>',
+};
+
+/* =========================================================
+   描画の入口
+   ========================================================= */
+function render(keepScroll) {
+  var y = window.scrollY;
+  var app = document.getElementById('app');
+  if (S.tab === 'shelf') app.innerHTML = shelfHtml();
+  else if (S.tab === 'stats') app.innerHTML = statsHtml();
+  else app.innerHTML = checkHtml();
+  app.insertAdjacentHTML('beforeend', navHtml());
+  if (S.tab === 'shelf') renderShelfBody();
+  window.scrollTo(0, keepScroll ? y : 0);
+}
+
+function navHtml() {
+  var n = checkBooks().length;
+  function b(tab, label, icon) {
+    return '<button data-act="tab" data-tab="' + tab + '" class="' + (S.tab === tab ? 'on' : '') + '">' +
+      '<span class="ic">' + icon + (tab === 'check' && n ? '<span class="badge">' + n + '</span>' : '') + '</span>' + label + '</button>';
+  }
+  return '<nav class="tabs' + (S.tab === 'stats' ? ' on-dark' : '') + '" aria-label="メインメニュー">' +
+    b('shelf', 'SHELF', IC.shelf) + b('stats', 'STATS', IC.stats) + b('check', 'CHECK', IC.check) + '</nav>';
+}
+
+/* =========================================================
+   本棚
+   ========================================================= */
+function currentYear() {
+  if (S.year === 'all') return 'all';
+  var ys = years();
+  if (S.year === 'latest' || ys.indexOf(Number(S.year)) < 0) return ys[0] || 'all';
+  return Number(S.year);
+}
+
+function shelfHtml() {
+  var y = currentYear();
+  var ys = years();
+  var yearOpts = '<option value="all"' + (y === 'all' ? ' selected' : '') + '>全期間</option>' +
+    ys.map(function (v) { return '<option value="' + v + '"' + (v === y ? ' selected' : '') + '>' + v + '</option>'; }).join('');
+  var genreOpts = '<option value="">ジャンル</option>' +
+    S.genres.map(function (g) { return '<option value="' + esc(g) + '"' + (g === S.genre ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') +
+    '<option value="__none"' + (S.genre === '__none' ? ' selected' : '') + '>未設定</option>';
+  return '' +
+    '<header class="dark-head">' +
+      '<div class="row"><span class="label">LIBRARY</span>' +
+        '<button class="icon-btn" style="color:#fff;margin-right:-12px" data-act="settings" aria-label="設定">' + IC.sliders + '</button></div>' +
+      '<div class="big-num"><b>' + S.books.length + '</b><span>冊</span></div>' +
+      '<label class="search">' + IC.search +
+        '<input id="q" type="search" placeholder="タイトル・著者で検索" aria-label="検索" value="' + esc(S.q) + '"></label>' +
+    '</header>' +
+    '<div class="filters"><div class="left">' +
+      '<span class="sel-pill' + (y !== 'all' ? ' on' : '') + '"><select id="fYear" aria-label="年">' + yearOpts + '</select></span>' +
+      '<span class="sel-pill' + (S.genre ? ' on' : '') + '"><select id="fGenre" aria-label="ジャンル">' + genreOpts + '</select></span>' +
+    '</div>' +
+    '<div class="toggle">' +
+      '<button data-act="view" data-v="grid" class="' + (S.view === 'grid' ? 'on' : '') + '" aria-label="表紙表示">' + IC.grid + '</button>' +
+      '<button data-act="view" data-v="list" class="' + (S.view === 'list' ? 'on' : '') + '" aria-label="リスト表示">' + IC.list + '</button>' +
+    '</div></div>' +
+    '<main class="shelf-body" id="shelfBody"></main>';
+}
+
+var SORTS = [
+  { k: 'date-desc', label: 'NEWEST' },
+  { k: 'date-asc', label: 'OLDEST' },
+  { k: 'title', label: 'TITLE' },
+  { k: 'author', label: 'AUTHOR' },
+];
+
+function filteredBooks() {
+  var y = currentYear();
+  var q = norm(S.q);
+  var list = S.books.filter(function (b) {
+    if (y !== 'all' && yearOf(b) !== y) return false;
+    if (S.genre === '__none' && b.genre) return false;
+    if (S.genre && S.genre !== '__none' && b.genre !== S.genre) return false;
+    if (q && norm(b.title + ' ' + b.author + ' ' + b.matched).indexOf(q) < 0) return false;
+    return true;
+  });
+  var s = S.sort;
+  list.sort(function (a, b) {
+    if (s === 'date-asc') return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    if (s === 'title') return a.title.localeCompare(b.title, 'ja');
+    if (s === 'author') return (a.author || '￿').localeCompare(b.author || '￿', 'ja') || (a.date < b.date ? 1 : -1);
+    return a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
+  });
+  return list;
+}
+
+function renderShelfBody() {
+  var el = document.getElementById('shelfBody');
+  if (!el) return;
+  var list = filteredBooks();
+  var sortLabel = SORTS.filter(function (x) { return x.k === S.sort; })[0].label;
+  var sortBtn = '<button class="sort-btn" data-act="sort">' + IC.sort + sortLabel + '</button>';
+  if (!list.length) {
+    el.innerHTML = '<div style="display:flex;justify-content:flex-end">' + sortBtn + '</div><div class="empty">該当する本がありません</div>';
+    return;
+  }
+  var groups = [];
+  if (S.sort === 'date-desc' || S.sort === 'date-asc') {
+    var cur = null;
+    list.forEach(function (b) {
+      var y = yearOf(b);
+      if (!cur || cur.key !== y) { cur = { key: y, title: String(y || '日付なし'), items: [] }; groups.push(cur); }
+      cur.items.push(b);
     });
+  } else {
+    groups.push({ key: 'all', title: 'ALL', items: list });
   }
+  var html = '<div style="display:flex;justify-content:flex-end">' + sortBtn + '</div>';
+  groups.forEach(function (g) {
+    html += '<div class="group-head"><h2>' + esc(g.title) + '</h2><span class="cnt">' + g.items.length + ' 冊</span></div>';
+    if (S.view === 'grid') {
+      html += '<div class="grid">' + g.items.map(function (b) {
+        return '<button class="tile" data-act="detail" data-id="' + esc(b.id) + '" aria-label="' + esc(b.title) + '">' + coverHtml(b) + '</button>';
+      }).join('') + '</div>';
+    } else {
+      html += '<div class="list">' + g.items.map(function (b) {
+        var sub = [b.author, b.genre].filter(Boolean).join(' · ');
+        return '<button class="row-item" data-act="detail" data-id="' + esc(b.id) + '">' +
+          '<span class="thumb">' + coverHtml(b) + '</span>' +
+          '<span class="t"><b>' + esc(b.title) + '</b><span>' + esc(sub || '—') + '</span></span>' +
+          '<span class="d">' + esc(dotDate(String(b.date).slice(5))) + '</span></button>';
+      }).join('') + '</div>';
+    }
+  });
+  el.innerHTML = html;
+}
+
+/* =========================================================
+   詳細シート
+   ========================================================= */
+function openDetail(id) {
+  var b = bookById(id);
+  if (!b) return;
+  var tags = '<span style="display:flex;gap:6px">' +
+    (b.genre ? '<span class="tag">' + esc(b.genre) + '</span>' : '') +
+    (b.status === '要チェック' ? '<span class="tag fill">要チェック</span>' : '') + '</span>';
+  document.getElementById('layer').innerHTML =
+    '<div class="sheet-wrap">' +
+      '<button class="sheet-bg" data-act="close-layer" aria-label="閉じる"></button>' +
+      '<section class="sheet" role="dialog" aria-label="本の詳細">' +
+        '<div class="grab"><span></span><button class="icon-btn" data-act="edit" data-id="' + esc(b.id) + '" aria-label="編集">' + IC.pen + '</button></div>' +
+        '<div class="big-cover">' + coverHtml(b) + '</div>' +
+        '<div class="info"><div class="meta">' + tags + '<span class="d">' + esc(dotDate(b.date)) + '</span></div>' +
+          '<h1>' + esc(b.title) + '</h1>' +
+          (b.author ? '<span class="au">' + esc(b.author) + '</span>' : '') + '</div>' +
+        '<a class="btn black" style="height:52px;font-size:13px;font-weight:800;letter-spacing:.16em" href="' + esc(amazonUrl(b)) + '" target="_blank" rel="noopener">VIEW ON AMAZON ' + IC.ext + '</a>' +
+      '</section>' +
+    '</div>';
+}
+function closeLayer() { document.getElementById('layer').innerHTML = ''; EDIT = null; }
+
+/* =========================================================
+   集計
+   ========================================================= */
+function statsData() {
+  var ys = years();
+  if (S.statsYear == null || ys.indexOf(S.statsYear) < 0) S.statsYear = ys[0] || NOW_YEAR;
+  var isYear = S.statsMode === 'year';
+  var bars;
+  if (isYear) {
+    bars = [];
+    for (var m = 1; m <= 12; m++) bars.push({ label: String(m), name: m + '月', v: 0, test: (function (mm) { return function (b) { return monthOf(b) === mm; }; })(m) });
+    S.books.forEach(function (b) { if (yearOf(b) === S.statsYear) { var mm = monthOf(b); if (mm) bars[mm - 1].v++; } });
+  } else {
+    var min = ys.length ? ys[ys.length - 1] : NOW_YEAR, max = ys.length ? ys[0] : NOW_YEAR;
+    bars = [];
+    for (var y = min; y <= max; y++) bars.push({ label: '’' + String(y).slice(2), name: y + '年', year: y, v: 0, test: (function (yy) { return function (b) { return yearOf(b) === yy; }; })(y) });
+    S.books.forEach(function (b) { var yy = yearOf(b); if (yy >= min) bars[yy - min].v++; });
+  }
+  if (S.statsSel >= bars.length) S.statsSel = -1;
+  var base = isYear ? S.books.filter(function (b) { return yearOf(b) === S.statsYear; }) : S.books.slice();
+  var scoped = S.statsSel >= 0 ? base.filter(bars[S.statsSel].test) : base;
+  var gc = {}, ac = {};
+  scoped.forEach(function (b) {
+    var g = b.genre || '未設定'; gc[g] = (gc[g] || 0) + 1;
+    authorsOf(b).forEach(function (a) { ac[a] = (ac[a] || 0) + 1; });
+  });
+  var genres = Object.keys(gc).map(function (k) { return { name: k, v: gc[k] }; }).sort(function (a, b) { return b.v - a.v; });
+  var authors = Object.keys(ac).map(function (k) { return { name: k, v: ac[k] }; })
+    .sort(function (a, b) { return b.v - a.v || a.name.localeCompare(b.name, 'ja'); }).slice(0, 5);
+  return { isYear: isYear, ys: ys, bars: bars, total: base.length, genres: genres, authors: authors };
+}
+
+function statsHtml() {
+  var d = statsData();
+  var max = Math.max.apply(null, d.bars.map(function (b) { return b.v; }).concat([1]));
+  var scope = S.statsSel >= 0 ? ' · ' + d.bars[S.statsSel].name : '';
+  var gmax = d.genres.length ? d.genres[0].v : 1;
+  var idx = d.ys.indexOf(S.statsYear);
+  var period = d.isYear
+    ? '<button data-act="st-year" data-d="1" aria-label="前の年"' + (idx >= d.ys.length - 1 ? ' disabled' : '') + '>' + IC.back + '</button>' +
+      '<span>' + S.statsYear + '</span>' +
+      '<button data-act="st-year" data-d="-1" aria-label="次の年"' + (idx <= 0 ? ' disabled' : '') + ' style="transform:scaleX(-1)">' + IC.back + '</button>'
+    : '<span style="line-height:36px">ALL TIME</span>';
+  return '<div class="stats">' +
+    '<div class="stats-top"><span class="label">STATS</span>' +
+      '<div class="seg"><button data-act="st-mode" data-m="year" class="' + (d.isYear ? 'on' : '') + '">年ごと</button>' +
+      '<button data-act="st-mode" data-m="all" class="' + (!d.isYear ? 'on' : '') + '">全期間</button></div></div>' +
+    '<div class="period">' + period + '</div>' +
+    '<div class="big-num"><b>' + d.total + '</b><span>冊</span></div>' +
+    '<div class="bars">' + d.bars.map(function (b, i) {
+      var sel = i === S.statsSel;
+      return '<button data-act="st-bar" data-i="' + i + '" class="' + (sel ? 'sel' : '') + '" aria-pressed="' + sel + '" aria-label="' + esc(b.name) + ' ' + b.v + '冊">' +
+        '<span class="v">' + (sel ? b.v : '') + '</span>' +
+        '<span class="b" style="height:' + Math.round(b.v / max * 76) + 'px"></span>' +
+        '<span class="l">' + esc(b.label) + '</span></button>';
+    }).join('') + '</div>' +
+    '<section class="stat-sec"><h3>GENRE<em>' + esc(scope) + '</em></h3>' +
+      (d.genres.length ? d.genres.map(function (g) {
+        return '<button class="g-row" data-act="st-genre" data-g="' + esc(g.name) + '"><span class="n">' + esc(g.name) + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + Math.round(g.v / gmax * 100) + '%"></span></span><span class="c">' + g.v + '</span></button>';
+      }).join('') : '<span style="color:#8C8C8C;font-size:13px">—</span>') +
+    '</section>' +
+    '<section class="stat-sec"><h3>AUTHOR<em>' + esc(scope) + '</em></h3>' +
+      (d.authors.length ? d.authors.map(function (a, i) {
+        return '<button class="a-row" data-act="st-author" data-a="' + esc(a.name) + '"><span class="r">' + (i + 1) + '</span><span class="n">' + esc(a.name) + '</span><span class="c">' + a.v + '</span></button>';
+      }).join('') : '<span style="color:#8C8C8C;font-size:13px">—</span>') +
+    '</section></div>';
+}
+
+/* =========================================================
+   要チェック
+   ========================================================= */
+function checkHtml() {
+  var list = checkBooks().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  var cards = list.map(function (b) {
+    var notFound = b.fetch === '見つからない' || !b.matched;
+    return '<article class="card">' +
+      '<div class="top"><span class="date">' + esc(dotDate(b.date)) + '</span>' +
+        (notFound ? '<span class="tag">見つかりません</span>' : '<span class="tag fill">別の本の可能性</span>') + '</div>' +
+      '<div class="mid"><span class="cv">' + coverHtml(b) + '</span>' +
+        '<dl><div><dt>CALENDAR</dt><dd class="main">' + esc(b.title) + '</dd></div>' +
+        '<div><dt>FOUND</dt><dd' + (notFound ? ' style="color:#6B6B6B"' : '') + '>' + esc(b.matched || '—') + '</dd></div></dl></div>' +
+      '<div class="two">' +
+        (notFound
+          ? '<button class="btn" data-act="edit" data-id="' + esc(b.id) + '">手で入力</button>' +
+            '<button class="btn black" data-act="edit" data-id="' + esc(b.id) + '" data-search="1">別の語で検索</button>'
+          : '<button class="btn" data-act="confirm" data-id="' + esc(b.id) + '">この本でOK</button>' +
+            '<button class="btn black" data-act="edit" data-id="' + esc(b.id) + '" data-search="1">選び直す</button>') +
+      '</div></article>';
+  }).join('');
+  return '<header class="dark-head"><div class="row"><span class="label">CHECK</span></div>' +
+    '<div class="big-num"><b>' + list.length + '</b><span>冊</span></div></header>' +
+    '<main class="check-body">' + (cards || '<div class="empty">確認が必要な本はありません</div>') + '</main>';
+}
+
+/* =========================================================
+   編集
+   ========================================================= */
+function openEdit(id, startSearch) {
+  var b = bookById(id);
+  if (!b) return;
+  EDIT = {
+    id: id, book: b,
+    cand: null, candidates: null, searching: false, query: b.title,
+    f: { author: b.author, genre: b.genre, cover: b.cover, isbn: b.isbn, pages: b.pages === '' ? '' : String(b.pages) },
+    dirty: {},
+    check: b.status === '要チェック',
+    coverMode: '',
+  };
+  renderEdit();
+  if (startSearch) runSearch();
+}
+
+function renderEdit() {
+  var e = EDIT, b = e.book;
+  var cands = '';
+  if (e.searching) cands = '<div class="empty" style="padding:20px 0">検索中…</div>';
+  else if (e.candidates && !e.candidates.length) cands = '<div class="empty" style="padding:20px 0">見つかりませんでした</div>';
+  else if (e.candidates) cands = e.candidates.map(function (c, i) {
+    var on = e.cand && e.cand.id === c.id;
+    var t = c.title + (c.subtitle ? ' ' + c.subtitle : '');
+    return '<button class="cand" data-act="pick" data-i="' + i + '" aria-pressed="' + on + '">' +
+      '<span class="thumb">' + coverHtml({ cover: c.cover, title: t }) + '</span>' +
+      '<span class="t"><b>' + esc(t) + '</b><span>' + esc([c.authors, c.isbn].filter(Boolean).join(' · ') || '—') + '</span></span>' +
+      '<span class="radio' + (on ? ' on' : '') + '"></span></button>';
+  }).join('');
+
+  var genreChips = S.genres.map(function (g) {
+    return '<button class="pill' + (e.f.genre === g ? ' on' : '') + '" data-act="e-genre" data-g="' + esc(g) + '">' + esc(g) + '</button>';
+  }).join('') + '<button class="pill' + (!e.f.genre ? ' on' : '') + '" data-act="e-genre" data-g="">未設定</button>';
+
+  var coverPicker = '';
+  if (e.coverMode === 'pick') {
+    var covers = (e.candidates || []).filter(function (c) { return c.cover; });
+    coverPicker = e.searching ? '<div class="empty" style="padding:12px 0">検索中…</div>'
+      : covers.length ? '<div class="cover-grid">' + covers.map(function (c) {
+          return '<button data-act="e-cover" data-url="' + esc(c.cover) + '" class="' + (e.f.cover === c.cover ? 'on' : '') + '"><img src="' + esc(c.cover) + '" alt="" referrerpolicy="no-referrer"></button>';
+        }).join('') + '</div>'
+      : '<div class="empty" style="padding:12px 0">表紙の候補がありません</div>';
+  } else if (e.coverMode === 'url') {
+    coverPicker = '<input class="u-input" id="eCoverUrl" placeholder="https://…" value="' + esc(e.f.cover) + '" style="margin-top:8px">';
+  }
+
+  document.getElementById('layer').innerHTML =
+    '<div class="page"><div class="page-in">' +
+      '<div class="page-bar"><button class="icon-btn" data-act="close-layer" aria-label="閉じる">' + IC.close + '</button>' +
+        '<span class="label">EDIT</span><button class="save-btn" data-act="e-save">SAVE</button></div>' +
+      '<div class="page-body" style="padding-top:8px">' +
+        '<div style="display:flex;flex-direction:column;gap:4px">' +
+          '<h1 style="margin:0;font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1.2;word-break:break-word">' + esc(b.title) + '</h1>' +
+          '<span class="lock">' + IC.lock + esc(dotDate(b.date)) + '</span></div>' +
+
+        '<section class="sec"><div class="sec-head"><span class="sec-label">BOOK</span></div>' +
+          '<div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:6px">' +
+            '<input class="u-input" id="eQuery" value="' + esc(e.query) + '" aria-label="検索する言葉" style="flex:1">' +
+            '<button class="pill on" data-act="e-search">SEARCH</button></div>' +
+          '<div id="eCands">' + cands + '</div></section>' +
+
+        '<label class="sec"><span class="sec-head"><span class="sec-label">AUTHOR</span></span>' +
+          '<input class="u-input" id="eAuthor" value="' + esc(e.f.author) + '"></label>' +
+
+        '<section class="sec"><div class="sec-head"><span class="sec-label">GENRE</span>' +
+          '<button class="text-btn" data-act="genres">MANAGE</button></div>' +
+          '<div class="chips" style="padding-top:6px">' + genreChips + '</div></section>' +
+
+        '<section class="sec"><div class="sec-head"><span class="sec-label">COVER</span></div>' +
+          '<div style="display:flex;gap:14px;align-items:center;padding-top:6px">' +
+            '<span class="thumb" style="width:60px;height:90px">' + coverHtml({ cover: e.f.cover, title: b.title }) + '</span>' +
+            '<div style="flex:1;display:flex;flex-direction:column;gap:8px">' +
+              '<button class="btn" style="height:40px;font-size:13px" data-act="e-covermode" data-m="pick">ほかの表紙から選ぶ</button>' +
+              '<button class="btn" style="height:40px;font-size:13px" data-act="e-covermode" data-m="url">画像URLを入力</button></div></div>' +
+          coverPicker + '</section>' +
+
+        '<div class="two" style="gap:16px">' +
+          '<label class="sec"><span class="sec-head"><span class="sec-label">ISBN</span></span>' +
+            '<input class="u-input" id="eIsbn" inputmode="numeric" placeholder="—" value="' + esc(e.f.isbn) + '"></label>' +
+          '<label class="sec"><span class="sec-head"><span class="sec-label">PAGES</span></span>' +
+            '<input class="u-input" id="ePages" inputmode="numeric" placeholder="—" value="' + esc(e.f.pages) + '"></label></div>' +
+
+        '<div class="sec-head" style="padding-top:12px"><span class="sec-label">CHECK</span>' +
+          '<button class="switch' + (e.check ? ' on' : '') + '" data-act="e-check" role="switch" aria-checked="' + e.check + '" aria-label="要チェック"><i></i></button></div>' +
+      '</div></div></div>';
+}
+
+function runSearch() {
+  var q = document.getElementById('eQuery');
+  if (q) EDIT.query = q.value;
+  EDIT.searching = true;
+  renderEdit();
+  var id = EDIT.id;
+  call('apiSearch', EDIT.query).then(function (list) {
+    if (!EDIT || EDIT.id !== id) return;
+    EDIT.searching = false;
+    EDIT.candidates = list || [];
+    renderEdit();
+  }, function (err) {
+    if (!EDIT || EDIT.id !== id) return;
+    EDIT.searching = false;
+    EDIT.candidates = [];
+    renderEdit();
+    toast(errMsg(err), true);
+  });
+}
+
+function pickCandidate(i) {
+  var c = EDIT.candidates[i];
+  if (!c) return;
+  if (EDIT.cand && EDIT.cand.id === c.id) { EDIT.cand = null; renderEdit(); return; }
+  EDIT.cand = c;
+  // 選んだ本の情報を入力欄に入れる(保存時に本の情報としてまとめて反映する)
+  EDIT.f.author = c.authors; EDIT.f.cover = c.cover; EDIT.f.isbn = c.isbn; EDIT.f.pages = c.pages === '' ? '' : String(c.pages);
+  ['author', 'cover', 'isbn', 'pages'].forEach(function (k) { delete EDIT.dirty[k]; });
+  EDIT.check = false;
+  renderEdit();
+}
+
+function saveEdit() {
+  var e = EDIT;
+  var cols = { author: '著者', genre: 'ジャンル', cover: '表紙URL', isbn: 'ISBN', pages: 'ページ数' };
+  var fields = {};
+  Object.keys(e.dirty).forEach(function (k) { fields[cols[k]] = e.f[k]; });
+  var payload = { candidate: e.cand, fields: fields };
+  var wasCheck = e.book.status === '要チェック';
+  if (e.check !== wasCheck) payload.check = e.check;
+  if (!e.cand && !Object.keys(fields).length && payload.check === undefined) { closeLayer(); return; }
+  withBusy(call('apiSaveEdit', e.id, payload)).then(function (row) {
+    for (var i = 0; i < S.books.length; i++) if (S.books[i].id === row.id) S.books[i] = row;
+    saveCache();
+    closeLayer();
+    render();
+    toast('保存しました');
+  });
+}
+
+/* =========================================================
+   設定・ジャンル・変換・ログ
+   ========================================================= */
+var PAGE = null; // 'settings' | 'genres' | 'map' | 'log'
+var GOPEN = -1, GADD = false, MADD = false, CALS = null, LOGS = null;
+
+function openPage(p) { PAGE = p; EDIT = null; renderPage(); var el = document.querySelector('.page-in'); if (el) el.scrollTop = 0; }
+function pageShell(label, title, back, extra, body) {
+  return '<div class="page"><div class="page-in">' +
+    '<div class="page-bar"><button class="icon-btn" data-act="' + back + '" aria-label="戻る">' + IC.back + '</button>' +
+      '<span class="label">' + label + '</span>' + (extra || '<span style="width:40px"></span>') + '</div>' +
+    '<div class="page-title"><h1>' + esc(title) + '</h1></div>' +
+    '<div class="page-body">' + body + '</div></div></div>';
+}
+function renderPage() {
+  var html = '';
+  if (PAGE === 'settings') html = settingsHtml();
+  else if (PAGE === 'genres') html = genresHtml();
+  else if (PAGE === 'map') html = mapHtml();
+  else if (PAGE === 'log') html = logHtml();
+  document.getElementById('layer').innerHTML = html;
+}
+
+function unmappedCategories() {
+  var mapped = {};
+  S.mappings.forEach(function (m) { mapped[m.category.toLowerCase()] = 1; });
+  var cnt = {};
+  S.books.forEach(function (b) {
+    var c = String(b.category || '').trim();
+    if (!c) return;
+    var lc = c.toLowerCase(), head = lc.split('/')[0].trim();
+    if (mapped[lc] || mapped[head]) return;
+    cnt[c] = (cnt[c] || 0) + 1;
+  });
+  return Object.keys(cnt).map(function (k) { return { category: k, v: cnt[k] }; }).sort(function (a, b) { return b.v - a.v; });
+}
+
+function settingsHtml() {
+  if (!CALS) {
+    CALS = [];
+    call('apiListCalendars').then(function (l) { CALS = l; if (PAGE === 'settings') renderPage(); }, function () {});
+  }
+  var calOpts = (CALS.length ? CALS : [{ id: S.settings.calendarId, name: S.settings.calendarName }]).map(function (c) {
+    return '<option value="' + esc(c.id) + '"' + (c.id === S.settings.calendarId ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+  }).join('');
+  var un = unmappedCategories().length;
+  return pageShell('SETTINGS', '設定', 'close-layer', '',
+    '<section class="sec"><div class="sec-head"><span class="sec-label">CALENDAR</span></div>' +
+      '<label class="link-row"><span class="grow">読書カレンダー</span>' +
+        '<select id="sCal" style="border:0;background:transparent;font-size:14px;color:#6B6B6B;text-align:right;max-width:180px">' + calOpts + '</select></label>' +
+      '<button class="link-row" data-act="resync"><span class="grow">カレンダーから全件を取り直す</span>' + IC.sync + '</button></section>' +
+    '<section class="sec"><div class="sec-head"><span class="sec-label">GENRE</span></div>' +
+      '<button class="link-row" data-act="genres"><span class="grow">ジャンル一覧</span><span style="font-size:14px;font-weight:800">' + S.genres.length + '</span>' + IC.chev + '</button>' +
+      '<button class="link-row" data-act="map"><span class="grow">ジャンル変換</span>' + (un ? '<span class="tag fill">未設定 ' + un + '</span>' : '') + IC.chev + '</button></section>' +
+    '<section class="sec"><div class="sec-head"><span class="sec-label">LOG</span></div>' +
+      '<button class="link-row" data-act="log"><span class="grow">同期ログ</span>' + IC.chev + '</button></section>');
+}
+
+function genreCount(g) { var n = 0; S.books.forEach(function (b) { if (b.genre === g) n++; }); return n; }
+
+function genresHtml() {
+  var add = GADD ? '<div class="g-panel" style="padding-top:14px"><label style="display:flex;flex-direction:column;gap:2px"><span class="mini-label">NEW GENRE</span>' +
+    '<input class="u-input" id="gNew" placeholder="ジャンル名"></label>' +
+    '<div class="two"><button class="btn" data-act="g-add-cancel">キャンセル</button><button class="btn black" data-act="g-add-save">追加</button></div></div>' : '';
+  var rows = S.genres.map(function (g, i) {
+    var open = GOPEN === i;
+    var others = S.genres.filter(function (x) { return x !== g; });
+    return '<div class="g-item"><button data-act="g-toggle" data-i="' + i + '" aria-expanded="' + open + '">' +
+      '<span class="n">' + esc(g) + '</span><span class="c">' + genreCount(g) + '</span>' + (open ? IC.up : IC.down) + '</button>' +
+      (open ? '<div class="g-panel">' +
+        '<label style="display:flex;flex-direction:column;gap:2px"><span class="mini-label">NAME</span>' +
+          '<div style="display:flex;gap:8px;align-items:flex-end"><input class="u-input" id="gName" value="' + esc(g) + '" style="flex:1">' +
+          '<button class="pill on" data-act="g-rename" data-g="' + esc(g) + '">保存</button></div></label>' +
+        '<div style="display:flex;flex-direction:column;gap:6px"><span class="mini-label">ORDER</span><div class="two">' +
+          '<button class="btn" style="height:40px" data-act="g-move" data-g="' + esc(g) + '" data-d="-1"' + (i === 0 ? ' disabled' : '') + '>' + IC.up + ' 上へ</button>' +
+          '<button class="btn" style="height:40px" data-act="g-move" data-g="' + esc(g) + '" data-d="1"' + (i === S.genres.length - 1 ? ' disabled' : '') + '>' + IC.down + ' 下へ</button></div></div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px"><span class="mini-label">DELETE · ' + genreCount(g) + '冊の移動先</span>' +
+          '<div style="display:flex;gap:8px"><select class="round-sel" id="gMoveTo" aria-label="移動先のジャンル"><option value="">未設定にする</option>' +
+          others.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('') + '</select>' +
+          '<button class="btn red" style="height:42px" data-act="g-delete" data-g="' + esc(g) + '">削除</button></div></div>' +
+      '</div>' : '') + '</div>';
+  }).join('');
+  return pageShell('GENRES', 'ジャンル', 'settings',
+    '<button class="icon-btn" style="width:40px;height:40px;border-radius:50%;background:#0A0A0A;color:#fff" data-act="g-add" aria-label="ジャンルを追加">' + IC.plus + '</button>',
+    '<div style="border-top:3px solid #0A0A0A">' + add + rows + '</div>');
+}
+
+function genreSelect(cat, current, need) {
+  return '<select data-act="m-set" data-cat="' + esc(cat) + '" class="' + (need ? 'need' : '') + '" aria-label="' + esc(cat) + 'のジャンル">' +
+    (need ? '<option value="">選択</option>' : '') +
+    S.genres.map(function (g) { return '<option value="' + esc(g) + '"' + (g === current ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') +
+    (need ? '' : '<option value="__del">対応を削除</option>') + '</select>';
+}
+
+function mapHtml() {
+  var un = unmappedCategories();
+  var add = MADD ? '<div class="g-panel" style="padding-top:14px"><label style="display:flex;flex-direction:column;gap:2px"><span class="mini-label">GOOGLE BOOKS CATEGORY</span>' +
+    '<input class="u-input" id="mNew" placeholder="例: Fiction"></label>' +
+    '<div style="display:flex;gap:8px"><select class="round-sel" id="mNewGenre">' + S.genres.map(function (g) { return '<option>' + esc(g) + '</option>'; }).join('') + '</select>' +
+    '<button class="btn black" style="height:42px" data-act="m-add-save">追加</button></div></div>' : '';
+  return pageShell('MAPPING', 'ジャンル変換', 'settings',
+    '<button class="icon-btn" style="width:40px;height:40px;border-radius:50%;background:#0A0A0A;color:#fff" data-act="m-add" aria-label="対応を追加">' + IC.plus + '</button>',
+    (add ? '<div style="border-top:3px solid #0A0A0A">' + add + '</div>' : '') +
+    (un.length ? '<section class="sec"><div class="sec-head"><span class="sec-label">UNMAPPED</span><span class="badge" style="background:#0A0A0A">' + un.length + '</span></div>' +
+      un.map(function (u) {
+        return '<div class="map-row"><span class="cat">' + esc(u.category) + '<small>' + u.v + ' 冊</small></span>' + IC.arrow + genreSelect(u.category, '', true) + '</div>';
+      }).join('') + '</section>' : '') +
+    '<section class="sec"><div class="sec-head"><span class="sec-label">MAPPED</span></div>' +
+      (S.mappings.length ? S.mappings.map(function (m) {
+        return '<div class="map-row"><span class="cat">' + esc(m.category) + '</span>' + IC.arrow + genreSelect(m.category, m.genre, false) + '</div>';
+      }).join('') : '<div class="empty">まだありません</div>') + '</section>');
+}
+
+function logHtml() {
+  if (!LOGS) {
+    LOGS = 'loading';
+    call('apiGetLog').then(function (l) { LOGS = l; if (PAGE === 'log') renderPage(); }, function (e) { LOGS = []; toast(errMsg(e), true); });
+  }
+  var body = LOGS === 'loading' ? '<div class="empty">読み込み中…</div>'
+    : !LOGS.length ? '<div class="empty">ログはありません</div>'
+    : '<div style="border-top:3px solid #0A0A0A">' + LOGS.map(function (l) {
+        return '<div class="log-row"><div class="top"><b>' + esc(l.type) + '</b><span>' + esc(l.time) + '</span></div>' +
+          (l.title ? '<div class="tt">' + esc(l.title) + '</div>' : '') + (l.detail ? '<div class="dd">' + esc(l.detail) + '</div>' : '') + '</div>';
+      }).join('') + '</div>';
+  return pageShell('LOG', '同期ログ', 'settings', '', body);
+}
+
+function snapshotThen(p, msg) {
+  return withBusy(p).then(function (s) {
+    applySnapshot(s);
+    render();
+    if (PAGE) renderPage();
+    if (msg) toast(msg);
+  });
+}
+
+/* =========================================================
+   操作
+   ========================================================= */
+document.addEventListener('click', function (ev) {
+  var t = ev.target.closest('[data-act]');
+  if (!t || t.tagName === 'SELECT') return;
+  var a = t.getAttribute('data-act');
+  var d = t.dataset;
+  switch (a) {
+    case 'tab':
+      S.tab = d.tab; closeLayer(); PAGE = null; render(); break;
+    case 'view':
+      S.view = d.v; savePref('view', d.v);
+      document.querySelectorAll('[data-act="view"]').forEach(function (b) { b.classList.toggle('on', b.dataset.v === S.view); });
+      renderShelfBody(); break;
+    case 'sort':
+      var i = SORTS.map(function (x) { return x.k; }).indexOf(S.sort);
+      S.sort = SORTS[(i + 1) % SORTS.length].k; renderShelfBody(); break;
+    case 'detail': openDetail(d.id); break;
+    case 'close-layer': closeLayer(); PAGE = null; break;
+    case 'edit': PAGE = null; openEdit(d.id, d.search === '1'); break;
+    case 'confirm':
+      withBusy(call('apiConfirm', d.id)).then(function (row) {
+        for (var k = 0; k < S.books.length; k++) if (S.books[k].id === row.id) S.books[k] = row;
+        saveCache(); render(true); toast('OKにしました');
+      }); break;
+
+    // 集計
+    case 'st-mode': S.statsMode = d.m; S.statsSel = -1; render(); break;
+    case 'st-year':
+      var ys = years(), yi = ys.indexOf(S.statsYear) + Number(d.d);
+      if (yi >= 0 && yi < ys.length) { S.statsYear = ys[yi]; S.statsSel = -1; render(); } break;
+    case 'st-bar': var bi = Number(d.i); S.statsSel = S.statsSel === bi ? -1 : bi; render(); break;
+    case 'st-genre':
+    case 'st-author':
+      var sd = statsData();
+      var yr = sd.isYear ? S.statsYear : (S.statsSel >= 0 ? sd.bars[S.statsSel].year : 'all');
+      S.year = String(yr); S.genre = ''; S.q = '';
+      if (a === 'st-genre') S.genre = d.g === '未設定' ? '__none' : d.g; else S.q = d.a;
+      S.tab = 'shelf'; render(); break;
+
+    // 編集
+    case 'e-search': runSearch(); break;
+    case 'pick': pickCandidate(Number(d.i)); break;
+    case 'e-genre': EDIT.f.genre = d.g; EDIT.dirty.genre = 1; renderEdit(); break;
+    case 'e-covermode':
+      EDIT.coverMode = EDIT.coverMode === d.m ? '' : d.m;
+      if (EDIT.coverMode === 'pick' && !EDIT.candidates && !EDIT.searching) runSearch(); else renderEdit();
+      break;
+    case 'e-cover': EDIT.f.cover = d.url; EDIT.dirty.cover = 1; renderEdit(); break;
+    case 'e-check': EDIT.check = !EDIT.check; renderEdit(); break;
+    case 'e-save': saveEdit(); break;
+
+    // 設定
+    case 'settings': openPage('settings'); break;
+    case 'genres': GOPEN = -1; GADD = false; openPage('genres'); break;
+    case 'map': MADD = false; openPage('map'); break;
+    case 'log': LOGS = null; openPage('log'); break;
+    case 'resync':
+      if (confirm('カレンダーの全予定を読み直します。本の情報の取得は、このあと自動で進みます。よろしいですか？'))
+        snapshotThen(call('apiResync'), '取り直しました');
+      break;
+
+    // ジャンル
+    case 'g-toggle': GOPEN = GOPEN === Number(d.i) ? -1 : Number(d.i); GADD = false; renderPage(); break;
+    case 'g-add': GADD = !GADD; GOPEN = -1; renderPage(); var gn = document.getElementById('gNew'); if (gn) gn.focus(); break;
+    case 'g-add-cancel': GADD = false; renderPage(); break;
+    case 'g-add-save':
+      var nv = document.getElementById('gNew').value.trim();
+      if (!nv) return;
+      GADD = false; snapshotThen(call('apiAddGenre', nv), '追加しました'); break;
+    case 'g-rename':
+      var nn = document.getElementById('gName').value.trim();
+      if (!nn || nn === d.g) return;
+      snapshotThen(call('apiRenameGenre', d.g, nn), '名前を変えました'); break;
+    case 'g-move':
+      GOPEN = Math.max(0, Math.min(S.genres.length - 1, GOPEN + Number(d.d)));
+      snapshotThen(call('apiMoveGenre', d.g, Number(d.d))); break;
+    case 'g-delete':
+      var mt = document.getElementById('gMoveTo').value;
+      if (!confirm('「' + d.g + '」を削除します。' + (mt ? 'このジャンルの本は「' + mt + '」に移します。' : 'このジャンルの本は未設定になります。'))) return;
+      GOPEN = -1; snapshotThen(call('apiDeleteGenre', d.g, mt), '削除しました'); break;
+
+    // ジャンル変換
+    case 'm-add': MADD = !MADD; renderPage(); break;
+    case 'm-add-save':
+      var mc = document.getElementById('mNew').value.trim();
+      if (!mc) return;
+      MADD = false; snapshotThen(call('apiSetMapping', mc, document.getElementById('mNewGenre').value), '追加しました'); break;
+  }
+});
+
+document.addEventListener('change', function (ev) {
+  var t = ev.target;
+  if (t.id === 'fYear') { S.year = t.value; savePref('year', t.value); t.parentNode.classList.toggle('on', t.value !== 'all'); renderShelfBody(); }
+  else if (t.id === 'fGenre') { S.genre = t.value; t.parentNode.classList.toggle('on', !!t.value); renderShelfBody(); }
+  else if (t.id === 'sCal') {
+    if (t.value === S.settings.calendarId) return;
+    if (!confirm('読書カレンダーを切り替えると、読了記録は新しいカレンダーの内容で作り直されます(手で直した内容も消えます)。よろしいですか？')) {
+      t.value = S.settings.calendarId; return;
+    }
+    snapshotThen(call('apiSetCalendar', t.value), '切り替えました');
+  }
+  else if (t.dataset && t.dataset.act === 'm-set') {
+    var v = t.value;
+    if (!v) return;
+    snapshotThen(call('apiSetMapping', t.dataset.cat, v === '__del' ? '' : v), v === '__del' ? '削除しました' : '保存しました');
+  }
+});
+
+var qTimer;
+document.addEventListener('input', function (ev) {
+  var t = ev.target;
+  if (t.id === 'q') { S.q = t.value; clearTimeout(qTimer); qTimer = setTimeout(renderShelfBody, 150); return; }
+  if (!EDIT) return;
+  var map = { eAuthor: 'author', eIsbn: 'isbn', ePages: 'pages', eCoverUrl: 'cover' };
+  if (map[t.id]) { EDIT.f[map[t.id]] = t.value; EDIT.dirty[map[t.id]] = 1; }
+  if (t.id === 'eQuery') EDIT.query = t.value;
+});
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Enter' && ev.target.id === 'eQuery') { ev.preventDefault(); runSearch(); }
+});
+
+/* =========================================================
+   起動
+   ========================================================= */
+function showLogin(msg) {
+  document.getElementById('layer').innerHTML = '';
+  EDIT = null; PAGE = null;
+  document.getElementById('app').innerHTML =
+    '<div class="boot login"><span class="label">LIBRARY</span><h1>読書記録</h1>' +
+    (msg ? '<p class="err">' + esc(msg) + '</p>' : '') +
+    '<form id="loginForm"><input id="pass" type="password" autocomplete="current-password" placeholder="合言葉" aria-label="合言葉">' +
+    '<button class="btn white" type="submit">開く</button></form></div>';
+}
+document.addEventListener('submit', function (ev) {
+  if (ev.target.id !== 'loginForm') return;
+  ev.preventDefault();
+  var v = document.getElementById('pass').value.trim();
+  if (!v) return;
+  setToken(v);
+  document.getElementById('app').innerHTML = '<div class="boot"><div class="spin" style="border-color:#333;border-top-color:#fff"></div><span class="label">LIBRARY</span></div>';
+  boot();
+});
+
+function boot() {
+  if (!getToken()) { showLogin(''); return; }
+  var cached = loadCache();
+  var before = cached ? JSON.stringify(cached) : '';
+  if (cached) { applySnapshot(cached); render(); }
+  call('apiGetAll').then(function (s) {
+    applySnapshot(s);
+    if (JSON.stringify(s) === before) return;
+    if (document.getElementById('layer').innerHTML) { if (PAGE) renderPage(); return; }
+    render(true);
+  }, function (e) {
+    if (e.code === 'auth') return;
+    if (cached) { toast(errMsg(e), true); return; }
+    document.getElementById('app').innerHTML = '<div class="boot"><span class="label">ERROR</span><span style="font-size:14px;padding:0 24px;text-align:center">' + esc(errMsg(e)) + '</span>' +
+      '<button class="btn" style="border-color:#fff;color:#fff;background:transparent;height:44px" onclick="location.reload()">もう一度</button></div>';
+  });
+}
+boot();
 </script>
 </body>
 </html>
