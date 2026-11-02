@@ -138,6 +138,12 @@ nav.tabs .badge{position:absolute;top:-5px;right:-10px}
 .sheet-bg{position:absolute;inset:0;background:rgba(10,10,10,.55);border:0;padding:0}
 .sheet{position:relative;width:100%;max-width:480px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:10px 24px calc(28px + var(--safe-b));display:flex;flex-direction:column;gap:20px;animation:up .22s ease-out}
 @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes inL{from{transform:translateX(36px);opacity:0}to{transform:none;opacity:1}}
+@keyframes inR{from{transform:translateX(-36px);opacity:0}to{transform:none;opacity:1}}
+.swipe-l{animation:inL .22s ease-out}
+.swipe-r{animation:inR .22s ease-out}
+.edge-bump{animation:bump .25s ease-out}
+@keyframes bump{0%,100%{transform:none}40%{transform:translateX(var(--bump,8px))}}
 .grab{display:flex;justify-content:center;position:relative;min-height:24px}
 .grab span{width:40px;height:4px;border-radius:2px;background:#D4D4D4;margin-top:4px}
 .grab .icon-btn{position:absolute;right:-12px;top:-6px}
@@ -233,7 +239,7 @@ var S = {
   books: [], genres: [], mappings: [], settings: {},
   tab: 'shelf',
   view: pref('view', 'grid'),
-  year: pref('year', 'latest'),
+  year: 'latest',
   genre: '',
   q: '',
   sort: 'date-desc',
@@ -1054,7 +1060,7 @@ document.addEventListener('click', function (ev) {
 document.addEventListener('change', function (ev) {
   var t = ev.target;
   if (t.id === 'sYear') { S.statsYear = t.value === 'all' ? 'all' : Number(t.value); S.statsSel = -1; render(true); return; }
-  if (t.id === 'fYear') { S.year = t.value; savePref('year', t.value); t.parentNode.classList.toggle('on', t.value !== 'all'); renderShelfBody(); }
+  if (t.id === 'fYear') { S.year = t.value; t.parentNode.classList.toggle('on', t.value !== 'all'); renderShelfBody(); }
   else if (t.id === 'fGenre') { S.genre = t.value; t.parentNode.classList.toggle('on', !!t.value); renderShelfBody(); }
   else if (t.id === 'sCal') {
     if (t.value === S.settings.calendarId) return;
@@ -1082,6 +1088,61 @@ document.addEventListener('input', function (ev) {
 document.addEventListener('keydown', function (ev) {
   if (ev.key === 'Enter' && ev.target.id === 'eQuery') { ev.preventDefault(); runSearch(); }
 });
+
+/* =========================================================
+   左右のスワイプで年を切り替える(SHELF・STATS)
+   指を右へ → 前の年(古い)、指を左へ → 次の年(新しい)
+   ========================================================= */
+var SW = null;
+document.addEventListener('touchstart', function (ev) {
+  SW = null;
+  if (ev.touches.length !== 1) return;
+  if (document.getElementById('layer').innerHTML) return;      // 詳細・編集・設定を開いているときは無効
+  if (S.tab !== 'shelf' && S.tab !== 'stats') return;
+  if (ev.target.closest('input, select, textarea, nav')) return;
+  var t = ev.touches[0];
+  SW = { x: t.clientX, y: t.clientY, time: Date.now() };
+}, { passive: true });
+
+document.addEventListener('touchend', function (ev) {
+  if (!SW) return;
+  var t = ev.changedTouches[0];
+  var dx = t.clientX - SW.x, dy = t.clientY - SW.y, dt = Date.now() - SW.time;
+  SW = null;
+  // 横方向にはっきり動かしたときだけ(縦のスクロールと区別する)
+  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.8 || dt > 700) return;
+  swipeYear(dx > 0 ? 1 : -1);
+}, { passive: true });
+
+// dir = 1 で前の年(古い)、-1 で次の年(新しい)
+function swipeYear(dir) {
+  var ys = years(); // 新しい順
+  if (!ys.length) return;
+  var cur = S.tab === 'stats' ? S.statsYear : currentYear();
+  var i = cur === 'all' ? -1 : ys.indexOf(cur);
+  var j = i < 0 ? 0 : i + dir;
+  var target = S.tab === 'stats' ? document.querySelector('.stats') : document.getElementById('shelfBody');
+  if (j < 0 || j >= ys.length) {
+    // 端の年ではそれ以上動かない(少しだけ揺らして知らせる)
+    if (target) {
+      target.style.setProperty('--bump', (dir > 0 ? 8 : -8) + 'px');
+      target.classList.remove('edge-bump'); void target.offsetWidth; target.classList.add('edge-bump');
+    }
+    return;
+  }
+  if (S.tab === 'stats') {
+    S.statsYear = ys[j]; S.statsSel = -1;
+    render(true);
+  } else {
+    S.year = String(ys[j]);
+    var sel = document.getElementById('fYear');
+    if (sel) { sel.value = S.year; sel.parentNode.classList.add('on'); }
+    renderShelfBody();
+    window.scrollTo(0, 0);
+  }
+  var el = S.tab === 'stats' ? document.querySelector('.stats') : document.getElementById('shelfBody');
+  if (el) el.classList.add(dir > 0 ? 'swipe-r' : 'swipe-l');
+}
 
 /* =========================================================
    起動
