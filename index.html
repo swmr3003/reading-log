@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>読書記録</title>
+<meta name="apple-mobile-web-app-title" content="読書記録">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --black: #0A0A0A; --muted: #8C8C8C; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--black); color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
+  main { max-width: 440px; margin: 0 auto; min-height: 100vh; min-height: 100dvh;
+    padding: 56px 24px calc(32px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 28px; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--muted); }
+  .icon { width: 96px; height: 96px; border-radius: 22px; display: block; }
+  h1 { margin: 0; font-size: 40px; font-weight: 900; letter-spacing: -.03em; }
+  ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 3px solid #fff; }
+  li { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #2A2A2A; font-size: 15px; line-height: 1.6; }
+  li b.n { flex: none; width: 22px; font-size: 15px; font-weight: 900; }
+  li em { font-style: normal; font-weight: 700; }
+  .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+  .btn { height: 54px; border-radius: 999px; border: 1.5px solid #fff; background: transparent; color: #fff;
+    font: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+  .btn.white { background: #fff; color: var(--black); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<main id="setup" class="hidden">
+  <span class="label">LIBRARY</span>
+  <img class="icon" src="apple-touch-icon.png" alt="">
+  <h1>読書記録</h1>
+  <ol>
+    <li><b class="n">1</b><span>下の<em>共有ボタン</em>を押して、<em>「ホーム画面に追加」</em>を選ぶ</span></li>
+    <li><b class="n">2</b><span><em>「Webアプリとして開く」</em>がオンになっていたら<em>オフ</em>にして、「追加」を押す</span></li>
+    <li><b class="n">3</b><span>追加できたら、下の<em>「追加しました」</em>を押す。次からはアイコンを押すとすぐにアプリが開きます</span></li>
+  </ol>
+  <div class="actions">
+    <button class="btn white" id="done" type="button">追加しました</button>
+    <a class="btn" id="open" href="#">今はこのまま開く</a>
+  </div>
+</main>
+
+<script>
+  // 移動先(GASのWebアプリのURL)
+  var APP_URL = 'https://script.google.com/macros/s/AKfycbzTid_soGKLnee5kqwEKl_2SBKEZ3itSCMy7VsX4sc0iztYxpv5jKLcrooctq74u2ft/exec';
+
+  function ready() {
+    try { return localStorage.getItem('reading_log_ready') === '1'; } catch (e) { return false; }
+  }
+  function go() { location.replace(APP_URL); }
+
+  // 設定済み、またはホーム画面から全画面モードで開かれたときは、すぐにアプリへ移動する
+  if (ready() || window.navigator.standalone) {
+    go();
+  } else {
+    document.getElementById('setup').classList.remove('hidden');
+    document.getElementById('open').href = APP_URL;
+    document.getElementById('done').addEventListener('click', function () {
+      try { localStorage.setItem('reading_log_ready', '1'); } catch (e) {}
+      go();
+    });
+  }
+</script>
+</body>
+</html>
