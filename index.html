@@ -255,7 +255,7 @@ function savePref(k, v) { try { localStorage.setItem('rl_' + k, v); } catch (e) 
    サーバー呼び出し
    ========================================================= */
 // 画面の版(更新が反映されたかの確認用)
-var APP_VERSION = '2026.11.03-2';
+var APP_VERSION = '2026.11.03-3';
 
 // GASのWebアプリのURL(データのやり取り先)
 var API_URL = 'https://script.google.com/macros/s/AKfycbzTid_soGKLnee5kqwEKl_2SBKEZ3itSCMy7VsX4sc0iztYxpv5jKLcrooctq74u2ft/exec';
@@ -658,7 +658,7 @@ function renderEdit() {
   else if (e.candidates && !e.candidates.length) cands = '<div class="empty" style="padding:20px 0">見つかりませんでした</div>';
   else if (e.candidates) cands = e.candidates.map(function (c, i) {
     var on = e.cand && e.cand.id === c.id;
-    var t = c.title + (c.subtitle ? ' ' + c.subtitle : '');
+    var t = [c.title, c.volume, c.subtitle].filter(Boolean).join(' ');
     return '<button class="cand" data-act="pick" data-i="' + i + '" aria-pressed="' + on + '">' +
       '<span class="thumb">' + coverHtml({ cover: c.cover, title: t }) + '</span>' +
       '<span class="t"><b>' + esc(t) + '</b><span>' + esc([c.authors, c.isbn].filter(Boolean).join(' · ') || '—') + '</span></span>' +
@@ -681,7 +681,7 @@ function renderEdit() {
     coverPicker = '<input class="u-input" id="eCoverUrl" placeholder="https://…" value="' + esc(e.f.cover) + '" style="margin-top:8px">';
   }
 
-  document.getElementById('layer').innerHTML =
+  setLayerKeepScroll(
     '<div class="page"><div class="page-in">' +
       '<div class="page-bar"><button class="icon-btn" data-act="close-layer" aria-label="閉じる">' + IC.close + '</button>' +
         '<span class="label">EDIT</span><button class="save-btn" data-act="e-save">SAVE</button></div>' +
@@ -719,7 +719,16 @@ function renderEdit() {
 
         '<div class="sec-head" style="padding-top:12px"><span class="sec-label">CHECK</span>' +
           '<button class="switch' + (e.check ? ' on' : '') + '" data-act="e-check" role="switch" aria-checked="' + e.check + '" aria-label="要チェック"><i></i></button></div>' +
-      '</div></div></div>';
+      '</div></div></div>');
+}
+
+// 全画面のページを描き直すとき、スクロール位置をそのまま保つ
+function setLayerKeepScroll(html) {
+  var old = document.querySelector('#layer .page-in');
+  var top = old ? old.scrollTop : 0;
+  document.getElementById('layer').innerHTML = html;
+  var el = document.querySelector('#layer .page-in');
+  if (el) el.scrollTop = top;
 }
 
 function runSearch() {
@@ -767,7 +776,7 @@ function saveEdit() {
     for (var i = 0; i < S.books.length; i++) if (S.books[i].id === row.id) S.books[i] = row;
     saveCache();
     closeLayer();
-    render();
+    render(true);
     toast('保存しました');
   });
 }
@@ -778,7 +787,11 @@ function saveEdit() {
 var PAGE = null; // 'settings' | 'genres' | 'map' | 'log'
 var GOPEN = -1, GADD = false, MADD = false, CALS = null, LOGS = null;
 
-function openPage(p) { PAGE = p; EDIT = null; renderPage(); var el = document.querySelector('.page-in'); if (el) el.scrollTop = 0; }
+function openPage(p) {
+  PAGE = p; EDIT = null;
+  document.getElementById('layer').innerHTML = ''; // 別のページへ移るときは先頭から表示する
+  renderPage();
+}
 function pageShell(label, title, back, extra, body) {
   return '<div class="page"><div class="page-in">' +
     '<div class="page-bar"><button class="icon-btn" data-act="' + back + '" aria-label="戻る">' + IC.back + '</button>' +
@@ -792,7 +805,7 @@ function renderPage() {
   else if (PAGE === 'genres') html = genresHtml();
   else if (PAGE === 'map') html = mapHtml();
   else if (PAGE === 'log') html = logHtml();
-  document.getElementById('layer').innerHTML = html;
+  setLayerKeepScroll(html);
 }
 
 // 分類番号(2桁)の名前
