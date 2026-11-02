@@ -26,7 +26,7 @@ html,body{margin:0;background:#0A0A0A;color:var(--ink);font-family:'Inter','Noto
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:inherit;text-decoration:none}
-#app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--white);position:relative}
+#app{touch-action:pan-y;max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--white);position:relative}
 .hidden{display:none!important}
 .label{font-size:12px;font-weight:700;letter-spacing:.2em}
 .sec-label{font-size:11px;font-weight:800;letter-spacing:.2em}
@@ -254,6 +254,9 @@ function savePref(k, v) { try { localStorage.setItem('rl_' + k, v); } catch (e) 
 /* =========================================================
    サーバー呼び出し
    ========================================================= */
+// 画面の版(更新が反映されたかの確認用)
+var APP_VERSION = '2026.11.03-2';
+
 // GASのWebアプリのURL(データのやり取り先)
 var API_URL = 'https://script.google.com/macros/s/AKfycbzTid_soGKLnee5kqwEKl_2SBKEZ3itSCMy7VsX4sc0iztYxpv5jKLcrooctq74u2ft/exec';
 
@@ -873,7 +876,8 @@ function settingsHtml() {
       '<button class="link-row" data-act="genres"><span class="grow">ジャンル一覧</span><span style="font-size:14px;font-weight:800">' + S.genres.length + '</span>' + IC.chev + '</button>' +
       '<button class="link-row" data-act="map"><span class="grow">ジャンル変換</span>' + (un ? '<span class="tag fill">未設定 ' + un + '</span>' : '') + IC.chev + '</button></section>' +
     '<section class="sec"><div class="sec-head"><span class="sec-label">LOG</span></div>' +
-      '<button class="link-row" data-act="log"><span class="grow">同期ログ</span>' + IC.chev + '</button></section>');
+      '<button class="link-row" data-act="log"><span class="grow">同期ログ</span>' + IC.chev + '</button></section>' +
+    '<p style="margin:0;font-size:11px;color:#A3A3A3;letter-spacing:.1em">VERSION ' + APP_VERSION + '</p>');
 }
 
 function genreCount(g) { var n = 0; S.books.forEach(function (b) { if (b.genre === g) n++; }); return n; }
@@ -1104,14 +1108,28 @@ document.addEventListener('touchstart', function (ev) {
   SW = { x: t.clientX, y: t.clientY, time: Date.now() };
 }, { passive: true });
 
-document.addEventListener('touchend', function (ev) {
+// 指の動きを記録しておく(iPhoneでは途中でタッチが中断されることがあるため)
+document.addEventListener('touchmove', function (ev) {
+  if (!SW || !ev.touches.length) return;
+  SW.lx = ev.touches[0].clientX;
+  SW.ly = ev.touches[0].clientY;
+}, { passive: true });
+
+function endSwipe(ev) {
   if (!SW) return;
-  var t = ev.changedTouches[0];
-  var dx = t.clientX - SW.x, dy = t.clientY - SW.y, dt = Date.now() - SW.time;
+  var t = ev.changedTouches && ev.changedTouches[0];
+  var x = t ? t.clientX : SW.lx, y = t ? t.clientY : SW.ly;
+  if (x == null) { SW = null; return; }
+  var dx = x - SW.x, dy = y - SW.y, dt = Date.now() - SW.time;
   SW = null;
   // 横方向にはっきり動かしたときだけ(縦のスクロールと区別する)
-  if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.8 || dt > 700) return;
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5 || dt > 900) return;
   swipeYear(dx > 0 ? 1 : -1);
+}
+document.addEventListener('touchend', endSwipe, { passive: true });
+document.addEventListener('touchcancel', function (ev) {
+  // 中断されたときは、最後に記録した位置で判定する
+  if (SW) endSwipe({ changedTouches: null });
 }, { passive: true });
 
 // dir = 1 で前の年(古い)、-1 で次の年(新しい)
