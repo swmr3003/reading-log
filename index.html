@@ -90,14 +90,12 @@ nav.tabs .badge{position:absolute;top:-5px;right:-10px}
 /* ----- 集計 ----- */
 .stats{background:var(--black);color:#fff;min-height:100vh;min-height:100dvh;padding-top:var(--safe-t);padding-bottom:calc(var(--nav-h) + var(--safe-b) + 24px)}
 .stats-top{padding:14px 20px 0;display:flex;align-items:center;justify-content:space-between;min-height:58px}
-.seg{display:flex;background:var(--dark2);border-radius:999px;padding:3px}
-.seg button{height:34px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--faint);font-size:13px;font-weight:700}
-.seg button.on{background:#fff;color:var(--black)}
-.period{display:flex;align-items:center;gap:6px;padding:18px 20px 0}
-.period button{width:36px;height:36px;border:0;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;padding:0}
-.period button:disabled{color:#444}
-.period span{font-size:14px;font-weight:700;letter-spacing:.1em}
-.stats .big-num{padding:2px 20px 0}
+.sel-pill.dark{color:#fff}
+.sel-pill.dark select{border-color:#fff;background:transparent;color:#fff}
+.sel-pill.dark.on{color:var(--black)}
+.sel-pill.dark.on select{background:#fff;color:var(--black)}
+.stats .big-num{padding:22px 20px 0}
+.more-btn{align-self:flex-start;height:40px;margin-top:6px;border:0;background:transparent;color:#fff;font-size:11px;font-weight:800;letter-spacing:.16em;text-decoration:underline;padding:0}
 .stats .big-num b{font-size:112px}
 .bars{margin:16px 20px 0;display:flex;align-items:flex-end;gap:3px;height:116px}
 .bars button{flex:1;min-width:0;height:100%;padding:0;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px}
@@ -239,7 +237,7 @@ var S = {
   genre: '',
   q: '',
   sort: 'date-desc',
-  statsMode: 'year', statsYear: null, statsSel: -1,
+  statsYear: null, statsSel: -1, allGenres: false, allAuthors: false,
 };
 var EDIT = null;   // 編集中の状態
 var NOW_YEAR = new Date().getFullYear();
@@ -535,8 +533,8 @@ function closeLayer() { document.getElementById('layer').innerHTML = ''; EDIT = 
    ========================================================= */
 function statsData() {
   var ys = years();
-  if (S.statsYear == null || ys.indexOf(S.statsYear) < 0) S.statsYear = ys[0] || NOW_YEAR;
-  var isYear = S.statsMode === 'year';
+  if (S.statsYear !== 'all' && (S.statsYear == null || ys.indexOf(S.statsYear) < 0)) S.statsYear = ys[0] || 'all';
+  var isYear = S.statsYear !== 'all';
   var bars;
   if (isYear) {
     bars = [];
@@ -558,7 +556,7 @@ function statsData() {
   });
   var genres = Object.keys(gc).map(function (k) { return { name: k, v: gc[k] }; }).sort(function (a, b) { return b.v - a.v; });
   var authors = Object.keys(ac).map(function (k) { return { name: k, v: ac[k] }; })
-    .sort(function (a, b) { return b.v - a.v || a.name.localeCompare(b.name, 'ja'); }).slice(0, 5);
+    .sort(function (a, b) { return b.v - a.v || a.name.localeCompare(b.name, 'ja'); });
   return { isYear: isYear, ys: ys, bars: bars, total: base.length, genres: genres, authors: authors };
 }
 
@@ -567,17 +565,18 @@ function statsHtml() {
   var max = Math.max.apply(null, d.bars.map(function (b) { return b.v; }).concat([1]));
   var scope = S.statsSel >= 0 ? ' · ' + d.bars[S.statsSel].name : '';
   var gmax = d.genres.length ? d.genres[0].v : 1;
-  var idx = d.ys.indexOf(S.statsYear);
-  var period = d.isYear
-    ? '<button data-act="st-year" data-d="1" aria-label="前の年"' + (idx >= d.ys.length - 1 ? ' disabled' : '') + '>' + IC.back + '</button>' +
-      '<span>' + S.statsYear + '</span>' +
-      '<button data-act="st-year" data-d="-1" aria-label="次の年"' + (idx <= 0 ? ' disabled' : '') + ' style="transform:scaleX(-1)">' + IC.back + '</button>'
-    : '<span style="line-height:36px">ALL TIME</span>';
+  var yearOpts = '<option value="all"' + (!d.isYear ? ' selected' : '') + '>全期間</option>' +
+    d.ys.map(function (v) { return '<option value="' + v + '"' + (v === S.statsYear ? ' selected' : '') + '>' + v + '</option>'; }).join('');
+  var GTOP = 6, ATOP = 5;
+  var gList = S.allGenres ? d.genres : d.genres.slice(0, GTOP);
+  var aList = S.allAuthors ? d.authors : d.authors.slice(0, ATOP);
+  function more(kind, total, top, open) {
+    if (total <= top) return '';
+    return '<button class="more-btn" data-act="st-more" data-k="' + kind + '">' + (open ? 'SHOW LESS' : 'SHOW ALL (' + total + ')') + '</button>';
+  }
   return '<div class="stats">' +
     '<div class="stats-top"><span class="label">STATS</span>' +
-      '<div class="seg"><button data-act="st-mode" data-m="year" class="' + (d.isYear ? 'on' : '') + '">年ごと</button>' +
-      '<button data-act="st-mode" data-m="all" class="' + (!d.isYear ? 'on' : '') + '">全期間</button></div></div>' +
-    '<div class="period">' + period + '</div>' +
+      '<span class="sel-pill dark' + (d.isYear ? ' on' : '') + '"><select id="sYear" aria-label="年">' + yearOpts + '</select></span></div>' +
     '<div class="big-num"><b>' + d.total + '</b><span>冊</span></div>' +
     '<div class="bars">' + d.bars.map(function (b, i) {
       var sel = i === S.statsSel;
@@ -587,15 +586,15 @@ function statsHtml() {
         '<span class="l">' + esc(b.label) + '</span></button>';
     }).join('') + '</div>' +
     '<section class="stat-sec"><h3>GENRE<em>' + esc(scope) + '</em></h3>' +
-      (d.genres.length ? d.genres.map(function (g) {
+      (gList.length ? gList.map(function (g) {
         return '<button class="g-row" data-act="st-genre" data-g="' + esc(g.name) + '"><span class="n">' + esc(g.name) + '</span>' +
           '<span class="track"><span class="fill" style="width:' + Math.round(g.v / gmax * 100) + '%"></span></span><span class="c">' + g.v + '</span></button>';
-      }).join('') : '<span style="color:#8C8C8C;font-size:13px">—</span>') +
+      }).join('') + more('g', d.genres.length, GTOP, S.allGenres) : '<span style="color:#8C8C8C;font-size:13px">—</span>') +
     '</section>' +
     '<section class="stat-sec"><h3>AUTHOR<em>' + esc(scope) + '</em></h3>' +
-      (d.authors.length ? d.authors.map(function (a, i) {
+      (aList.length ? aList.map(function (a, i) {
         return '<button class="a-row" data-act="st-author" data-a="' + esc(a.name) + '"><span class="r">' + (i + 1) + '</span><span class="n">' + esc(a.name) + '</span><span class="c">' + a.v + '</span></button>';
-      }).join('') : '<span style="color:#8C8C8C;font-size:13px">—</span>') +
+      }).join('') + more('a', d.authors.length, ATOP, S.allAuthors) : '<span style="color:#8C8C8C;font-size:13px">—</span>') +
     '</section></div>';
 }
 
@@ -787,18 +786,67 @@ function renderPage() {
   document.getElementById('layer').innerHTML = html;
 }
 
-function unmappedCategories() {
-  var mapped = {};
-  S.mappings.forEach(function (m) { mapped[m.category.toLowerCase()] = 1; });
-  var cnt = {};
+// 分類番号(2桁)の名前
+var NDC2 = {
+  '00':'総記','01':'図書館','02':'図書・書誌学','03':'百科事典','04':'論文集・講演集','05':'逐次刊行物','06':'団体','07':'ジャーナリズム','08':'叢書・全集','09':'貴重書・郷土資料',
+  '10':'哲学','11':'哲学各論','12':'東洋思想','13':'西洋哲学','14':'心理学','15':'倫理学','16':'宗教','17':'神道','18':'仏教','19':'キリスト教',
+  '20':'歴史','21':'日本史','22':'アジア史','23':'ヨーロッパ史','24':'アフリカ史','25':'北アメリカ史','26':'南アメリカ史','27':'オセアニア史','28':'伝記','29':'地理・紀行',
+  '30':'社会科学','31':'政治','32':'法律','33':'経済','34':'財政','35':'統計','36':'社会','37':'教育','38':'風俗習慣・民俗学','39':'国防・軍事',
+  '40':'自然科学','41':'数学','42':'物理学','43':'化学','44':'天文学・宇宙科学','45':'地球科学','46':'生物科学','47':'植物学','48':'動物学','49':'医学・薬学',
+  '50':'技術・工学','51':'建設工学','52':'建築学','53':'機械工学','54':'電気工学','55':'海洋・船舶工学','56':'金属・鉱山工学','57':'化学工業','58':'製造工業','59':'家政学・生活',
+  '60':'産業','61':'農業','62':'園芸','63':'蚕糸業','64':'畜産業','65':'林業','66':'水産業','67':'商業','68':'運輸・交通','69':'通信事業',
+  '70':'芸術・美術','71':'彫刻','72':'絵画','73':'版画','74':'写真','75':'工芸','76':'音楽','77':'演劇・映画','78':'スポーツ','79':'諸芸・娯楽',
+  '80':'言語','81':'日本語','82':'中国語','83':'英語','84':'ドイツ語','85':'フランス語','86':'スペイン語','87':'イタリア語','88':'ロシア語','89':'その他の言語',
+  '90':'文学','91':'日本文学','92':'中国文学','93':'英米文学','94':'ドイツ文学','95':'フランス文学','96':'スペイン文学','97':'イタリア文学','98':'ロシア文学','99':'その他の文学'
+};
+// よく出る3桁の名前
+var NDC3 = {
+  '007':'情報科学','159':'人生訓・教訓','289':'個人の伝記','290':'地理・紀行','304':'社会評論','336':'経営管理','338':'金融・証券',
+  '366':'労働','367':'家族・性','498':'衛生・健康','596':'料理','910':'日本文学(評論)','911':'詩歌','912':'戯曲','913':'日本の小説',
+  '914':'日本の随筆','915':'日記・書簡・紀行','916':'記録・ルポ','918':'作品集','923':'中国の小説','933':'英米の小説','943':'ドイツの小説',
+  '953':'フランスの小説','963':'スペインの小説','973':'イタリアの小説','983':'ロシアの小説','993':'その他の小説'
+};
+function ndcName(code) {
+  var c = String(code);
+  if (c.length >= 3 && NDC3[c.slice(0, 3)]) return NDC3[c.slice(0, 3)];
+  if (c.length >= 2 && NDC2[c.slice(0, 2)]) return NDC2[c.slice(0, 2)];
+  if (c.length === 1) return NDC2[c + '0'] || '';
+  return '';
+}
+function isNdcKey(k) { return /^\d/.test(String(k)); }
+function mapLookup() {
+  var m = {};
+  S.mappings.forEach(function (x) { m[String(x.category).toLowerCase()] = x.genre; });
+  return m;
+}
+// サーバーと同じ決め方:分類番号は頭から長く一致するもの、なければカテゴリ
+function effectiveGenre(ndc, cat, m) {
+  var n = String(ndc || '');
+  for (var len = n.length; len >= 1; len--) { var k = n.slice(0, len); if (m[k]) return { genre: m[k], key: k }; }
+  var c = String(cat || '').trim().toLowerCase();
+  if (c && m[c]) return { genre: m[c], key: c };
+  var h = c.split('/')[0].trim();
+  if (h && m[h]) return { genre: m[h], key: h };
+  return { genre: '', key: '' };
+}
+// 本に出てくる分類番号(3桁)とカテゴリの一覧
+function mappingRows() {
+  var m = mapLookup(), ndc = {}, cat = {};
   S.books.forEach(function (b) {
+    var n = String(b.ndc || '').replace(/[^\d]/g, '').slice(0, 3);
+    if (n) { ndc[n] = (ndc[n] || 0) + 1; return; }
     var c = String(b.category || '').trim();
-    if (!c) return;
-    var lc = c.toLowerCase(), head = lc.split('/')[0].trim();
-    if (mapped[lc] || mapped[head]) return;
-    cnt[c] = (cnt[c] || 0) + 1;
+    if (c) cat[c] = (cat[c] || 0) + 1;
   });
-  return Object.keys(cnt).map(function (k) { return { category: k, v: cnt[k] }; }).sort(function (a, b) { return b.v - a.v; });
+  var nd = Object.keys(ndc).sort().map(function (k) { var e = effectiveGenre(k, '', m); return { key: k, v: ndc[k], genre: e.genre, own: e.key === k }; });
+  var ct = Object.keys(cat).sort(function (a, b) { return cat[b] - cat[a]; }).map(function (k) {
+    var e = effectiveGenre('', k, m); return { key: k, v: cat[k], genre: e.genre, own: e.key === k.toLowerCase() };
+  });
+  return { ndc: nd, cat: ct };
+}
+function unmappedCategories() {
+  var r = mappingRows();
+  return r.ndc.concat(r.cat).filter(function (x) { return !x.genre; });
 }
 
 function settingsHtml() {
@@ -851,29 +899,41 @@ function genresHtml() {
     '<div style="border-top:3px solid #0A0A0A">' + add + rows + '</div>');
 }
 
-function genreSelect(cat, current, need) {
-  return '<select data-act="m-set" data-cat="' + esc(cat) + '" class="' + (need ? 'need' : '') + '" aria-label="' + esc(cat) + 'のジャンル">' +
-    (need ? '<option value="">選択</option>' : '') +
+function genreSelect(key, current) {
+  return '<select data-act="m-set" data-cat="' + esc(key) + '" aria-label="' + esc(key) + 'のジャンル">' +
     S.genres.map(function (g) { return '<option value="' + esc(g) + '"' + (g === current ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') +
-    (need ? '' : '<option value="__del">対応を削除</option>') + '</select>';
+    '<option value="__del">対応を削除</option></select>';
 }
 
 function mapHtml() {
-  var un = unmappedCategories();
-  var add = MADD ? '<div class="g-panel" style="padding-top:14px"><label style="display:flex;flex-direction:column;gap:2px"><span class="mini-label">GOOGLE BOOKS CATEGORY</span>' +
-    '<input class="u-input" id="mNew" placeholder="例: Fiction"></label>' +
+  var r = mappingRows();
+  var rules = S.mappings.slice().sort(function (a, b) {
+    var na = isNdcKey(a.category), nb = isNdcKey(b.category);
+    if (na !== nb) return na ? -1 : 1;
+    return String(a.category).localeCompare(String(b.category));
+  });
+  var add = MADD ? '<div class="g-panel" style="padding-top:14px"><label style="display:flex;flex-direction:column;gap:2px"><span class="mini-label">分類番号またはカテゴリ</span>' +
+    '<input class="u-input" id="mNew" placeholder="例: 914 / Fiction"></label>' +
     '<div style="display:flex;gap:8px"><select class="round-sel" id="mNewGenre">' + S.genres.map(function (g) { return '<option>' + esc(g) + '</option>'; }).join('') + '</select>' +
     '<button class="btn black" style="height:42px" data-act="m-add-save">追加</button></div></div>' : '';
+  function row(x, label) {
+    return '<div class="map-row"><span class="cat">' + esc(label) + '<small>' + x.v + ' 冊' + (x.genre && !x.own ? ' · 上位の分類から' : '') + '</small></span>' + IC.arrow +
+      '<select data-act="m-set" data-cat="' + esc(x.key) + '" class="' + (x.genre ? '' : 'need') + '" aria-label="' + esc(label) + 'のジャンル">' +
+      (x.genre ? '' : '<option value="">選択</option>') +
+      S.genres.map(function (g) { return '<option value="' + esc(g) + '"' + (g === x.genre ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') +
+      (x.own ? '<option value="__del">この対応を削除</option>' : '') + '</select></div>';
+  }
   return pageShell('MAPPING', 'ジャンル変換', 'settings',
     '<button class="icon-btn" style="width:40px;height:40px;border-radius:50%;background:#0A0A0A;color:#fff" data-act="m-add" aria-label="対応を追加">' + IC.plus + '</button>',
     (add ? '<div style="border-top:3px solid #0A0A0A">' + add + '</div>' : '') +
-    (un.length ? '<section class="sec"><div class="sec-head"><span class="sec-label">UNMAPPED</span><span class="badge" style="background:#0A0A0A">' + un.length + '</span></div>' +
-      un.map(function (u) {
-        return '<div class="map-row"><span class="cat">' + esc(u.category) + '<small>' + u.v + ' 冊</small></span>' + IC.arrow + genreSelect(u.category, '', true) + '</div>';
-      }).join('') + '</section>' : '') +
-    '<section class="sec"><div class="sec-head"><span class="sec-label">MAPPED</span></div>' +
-      (S.mappings.length ? S.mappings.map(function (m) {
-        return '<div class="map-row"><span class="cat">' + esc(m.category) + '</span>' + IC.arrow + genreSelect(m.category, m.genre, false) + '</div>';
+    (r.ndc.length ? '<section class="sec"><div class="sec-head"><span class="sec-label">CLASS</span><span style="font-size:11px;color:#6B6B6B">分類番号ごと</span></div>' +
+      r.ndc.map(function (x) { return row(x, x.key + ' ' + ndcName(x.key)); }).join('') + '</section>' : '') +
+    (r.cat.length ? '<section class="sec"><div class="sec-head"><span class="sec-label">CATEGORY</span><span style="font-size:11px;color:#6B6B6B">分類番号がない本</span></div>' +
+      r.cat.map(function (x) { return row(x, x.key); }).join('') + '</section>' : '') +
+    '<section class="sec"><div class="sec-head"><span class="sec-label">RULES</span><span style="font-size:11px;color:#6B6B6B">登録済みの対応</span></div>' +
+      (rules.length ? rules.map(function (m) {
+        var label = isNdcKey(m.category) ? m.category + ' ' + ndcName(m.category) : m.category;
+        return '<div class="map-row"><span class="cat">' + esc(label) + '</span>' + IC.arrow + genreSelect(m.category, m.genre) + '</div>';
       }).join('') : '<div class="empty">まだありません</div>') + '</section>');
 }
 
@@ -928,11 +988,10 @@ document.addEventListener('click', function (ev) {
       }); break;
 
     // 集計
-    case 'st-mode': S.statsMode = d.m; S.statsSel = -1; render(); break;
-    case 'st-year':
-      var ys = years(), yi = ys.indexOf(S.statsYear) + Number(d.d);
-      if (yi >= 0 && yi < ys.length) { S.statsYear = ys[yi]; S.statsSel = -1; render(); } break;
-    case 'st-bar': var bi = Number(d.i); S.statsSel = S.statsSel === bi ? -1 : bi; render(); break;
+    case 'st-bar': var bi = Number(d.i); S.statsSel = S.statsSel === bi ? -1 : bi; render(true); break;
+    case 'st-more':
+      if (d.k === 'g') S.allGenres = !S.allGenres; else S.allAuthors = !S.allAuthors;
+      render(true); break;
     case 'st-genre':
     case 'st-author':
       var sd = statsData();
@@ -994,6 +1053,7 @@ document.addEventListener('click', function (ev) {
 
 document.addEventListener('change', function (ev) {
   var t = ev.target;
+  if (t.id === 'sYear') { S.statsYear = t.value === 'all' ? 'all' : Number(t.value); S.statsSel = -1; render(true); return; }
   if (t.id === 'fYear') { S.year = t.value; savePref('year', t.value); t.parentNode.classList.toggle('on', t.value !== 'all'); renderShelfBody(); }
   else if (t.id === 'fGenre') { S.genre = t.value; t.parentNode.classList.toggle('on', !!t.value); renderShelfBody(); }
   else if (t.id === 'sCal') {
